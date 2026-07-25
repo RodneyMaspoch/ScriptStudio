@@ -1,0 +1,6 @@
+name = "throughline-ai-proxy"
+main = "index.js"
+compatibility_date = "2026-01-01"
+
+# Set the real secret with:  wrangler secret put GEMINI_API_KEY
+# Never put the actual key value in this file.
