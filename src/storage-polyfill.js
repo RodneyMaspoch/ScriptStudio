@@ -16,7 +16,7 @@
  * here — everything is local to this browser regardless of its value.
  */
 
-const PREFIX = "throughline:";
+const PREFIX = "scriptstudio:";
 
 function fullKey(key) {
   return PREFIX + key;

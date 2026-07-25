@@ -1,5 +1,5 @@
 /**
- * Throughline AI proxy — Cloudflare Worker, Gemini backend.
+ * Script Studio AI proxy — Cloudflare Worker, Gemini backend.
  *
  * WHY THIS EXISTS
  * The browser can never hold your Gemini API key (anyone can open dev tools
@@ -8,21 +8,21 @@
  *
  * SETUP
  * 1. Install Wrangler:              npm install -g wrangler
- * 2. Create the Worker:             wrangler init throughline-ai-proxy
+ * 2. Create the Worker:             wrangler init scriptstudio-ai-proxy
  *    (choose "Hello World" template, then replace src/index.js with this file)
  * 3. Get a free Gemini API key:     https://aistudio.google.com/apikey
  * 4. Store it as a secret (never in code, never committed):
  *      wrangler secret put GEMINI_API_KEY
  * 5. Deploy:                        wrangler deploy
- * 6. You'll get a URL like https://throughline-ai-proxy.YOUR-SUBDOMAIN.workers.dev
+ * 6. You'll get a URL like https://scriptstudio-ai-proxy.YOUR-SUBDOMAIN.workers.dev
  *
  * FRONTEND CHANGE
- * In throughline.jsx, replace the callClaude() function's fetch target and
+ * In App.jsx, replace the callClaude() function's fetch target and
  * body with a call to this Worker's URL, POSTing { system, messages } exactly
  * as it already does — this Worker accepts that same shape, so the rest of
  * the app (askBeat, runReview, runSearch) needs zero other changes.
  *
- *   const response = await fetch("https://throughline-ai-proxy.YOUR-SUBDOMAIN.workers.dev", {
+ *   const response = await fetch("https://scriptstudio-ai-proxy.YOUR-SUBDOMAIN.workers.dev", {
  *     method: "POST",
  *     headers: { "Content-Type": "application/json" },
  *     body: JSON.stringify({ system, messages }),

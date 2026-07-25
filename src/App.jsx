@@ -124,7 +124,7 @@ const DEFAULT_STATE = {
    Storage + AI helpers
    ====================================================================== */
 
-const STORAGE_KEY = "throughline_v1";
+const STORAGE_KEY = "scriptstudio_v1";
 
 async function loadPersisted() {
   try {
@@ -841,8 +841,7 @@ export default function App() {
         <div className="tl-brand">
           <div className="tl-brand-mark"><IconClapper /></div>
           <div className="tl-brand-text">
-            <span className="tl-brand-name">Throughline</span>
-            <span className="tl-brand-sub">Story Studio</span>
+            <span className="tl-brand-name">Script Studio</span>
           </div>
         </div>
         <div className="tl-nav">

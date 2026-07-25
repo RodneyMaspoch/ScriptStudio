@@ -1,4 +1,4 @@
-# Throughline AI proxy (Cloudflare Worker)
+# Script Studio AI proxy (Cloudflare Worker)
 
 Holds your Gemini API key server-side and forwards requests from the app.
 Free to run on Cloudflare's free tier. See the comment block at the top of
@@ -17,7 +17,7 @@ wrangler deploy
 Wrangler will print your live URL, something like:
 
 ```
-https://throughline-ai-proxy.YOUR-SUBDOMAIN.workers.dev
+https://scriptstudio-ai-proxy.YOUR-SUBDOMAIN.workers.dev
 ```
 
 Put that URL in the project root's `.env` file as `VITE_AI_PROXY_URL` (see

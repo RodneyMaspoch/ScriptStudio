@@ -1,4 +1,4 @@
-# Throughline — Story Studio
+# Script Studio
 
 A story-structure coach and screenplay editor for short films: pick a
 framework (Save the Cat, Hero's Journey, Story Clock, and others), answer

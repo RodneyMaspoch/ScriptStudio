@@ -1,3 +1,7 @@
+# Deploys the built frontend (dist/) as a Worker with static assets.
+# This is Cloudflare's current recommended path for a plain React/Vite SPA
+# (Pages and Workers are unified now — this is the Pages-equivalent setup).
+
 name = "scriptstudio"
 compatibility_date = "2026-01-01"
 
