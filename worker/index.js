@@ -31,7 +31,7 @@
  *   return data.text;
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash"; // swap to "gemini-2.5-flash-lite" for even higher free rate limits
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 // Lock this down to your real deployed frontend origin before going live.
