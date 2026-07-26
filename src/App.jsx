@@ -5,12 +5,12 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
    ====================================================================== */
 
 const FRAMEWORKS = [
-  { key: "clock", name: "Story Clock", count: 8, unit: "beats", blurb: "The story circle — comfort, desire, descent, return. Lean and rhythmic.", best: "Best for shorts" },
-  { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation" },
-  { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting" },
-  { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts" },
-  { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts" },
-  { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces" },
+  { key: "clock", name: "Story Clock", count: 8, unit: "beats", blurb: "The story circle — comfort, desire, descent, return. Lean and rhythmic.", best: "Best for shorts", fits: ["micro", "short", "long_short"] },
+  { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation", fits: ["long_short", "feature"] },
+  { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting", fits: ["feature", "long_short"] },
+  { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts", fits: ["micro", "short", "long_short", "feature"] },
+  { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts", fits: ["long_short", "feature"] },
+  { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces", fits: ["micro", "short", "long_short", "feature"] },
 ];
 
 function defsFor(fw) {
@@ -97,6 +97,7 @@ const ELS = [
 ];
 const NEXT_EL = { scene: "action", action: "action", character: "dialogue", paren: "dialogue", dialogue: "action", transition: "scene" };
 const EL_PLACEHOLDER = { scene: "INT. LOCATION — DAY", action: "Action…", character: "CHARACTER", paren: "(beat)", dialogue: "Dialogue…", transition: "CUT TO:" };
+const FDX_TYPE = { scene: "Scene Heading", action: "Action", character: "Character", paren: "Parenthetical", dialogue: "Dialogue", transition: "Transition" };
 
 const GROUP_META = {
   structure: { label: "Structure", color: "#5AA9FF" },
@@ -108,6 +109,34 @@ const SEV_COLOR = { high: "#FF5A5A", medium: "#F5A623", low: "#8B8B93" };
 
 const CORK_ROTATIONS = [-1.6, 1.1, -0.6, 1.4, -1.1, 0.8, -1.3, 0.6, -0.9, 1.2, -0.5, 1.5];
 
+const LENGTH_OPTIONS = [
+  { key: "micro", label: "Micro (under 2 min)", phrase: "a micro short film (under 2 minutes)", range: [0, 2] },
+  { key: "short", label: "Short (3\u201310 min)", phrase: "a short film (roughly 3\u201310 minutes)", range: [3, 10] },
+  { key: "long_short", label: "Long short (10\u201320 min)", phrase: "a longer short film (roughly 10\u201320 minutes)", range: [10, 20] },
+  { key: "feature", label: "Full feature (90\u2013120 min)", phrase: "a feature film (roughly 90\u2013120 minutes)", range: [90, 120] },
+  { key: "other", label: "Other (specify)\u2026", phrase: null, range: null },
+];
+
+function lengthPhrase(state) {
+  const opt = LENGTH_OPTIONS.find((o) => o.key === state.targetLength);
+  if (!opt) return "a short film";
+  if (opt.key === "other") {
+    const custom = (state.targetLengthCustom || "").trim();
+    return custom ? `a film with a target length of "${custom}"` : "a film of unspecified length";
+  }
+  return opt.phrase;
+}
+
+function targetRange(state) {
+  const opt = LENGTH_OPTIONS.find((o) => o.key === state.targetLength);
+  if (!opt) return null;
+  if (opt.key !== "other") return opt.range;
+  const m = (state.targetLengthCustom || "").match(/(\d+(\.\d+)?)/);
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  return [n * 0.8, n * 1.2];
+}
+
 const DEFAULT_STATE = {
   framework: null,
   data: {},
@@ -116,6 +145,8 @@ const DEFAULT_STATE = {
   filters: { size: "Any", angle: "Any", mood: "Any" },
   developView: "write",
   overview: "",
+  targetLength: "short",
+  targetLengthCustom: "",
   settings: { coachStyle: "Socratic", referenceCount: 6 },
   script: [{ type: "scene", text: "" }, { type: "action", text: "" }],
 };
@@ -291,7 +322,8 @@ export default function App() {
     savePersisted({
       framework: state.framework, data: state.data, reviewInput: state.reviewInput,
       boardQuery: state.boardQuery, filters: state.filters, developView: state.developView,
-      overview: state.overview, settings: state.settings, script: state.script,
+      overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom,
+      settings: state.settings, script: state.script,
     });
   }, [state, hydrated]);
 
@@ -325,7 +357,7 @@ export default function App() {
     const fwName = `${meta.name} (${meta.count} ${meta.unit})`;
     try {
       const txt = await callClaude({
-        system: `You are a sharp film story consultant helping a writer develop a SHORT FILM using the ${fwName} framework. ${styleLine(state.settings.coachStyle)} Respond ONLY as minified JSON: {"strength":"...","hole":"...","followup":"..."}. strength = one specific thing that is working in their beat (max 25 words). hole = the single biggest weakness, missing element, or unexamined assumption (max 30 words). followup = one pointed question that would strengthen this beat (max 25 words). Be specific to their actual text, never generic.`,
+        system: `You are a sharp film story consultant helping a writer develop ${lengthPhrase(state)} using the ${fwName} framework. Calibrate your notes to that target length \u2014 a beat that would need a whole sequence in a feature may need to land in a single image or line in something shorter, and vice versa. ${styleLine(state.settings.coachStyle)} Respond ONLY as minified JSON: {"strength":"...","hole":"...","followup":"..."}. strength = one specific thing that is working in their beat (max 25 words). hole = the single biggest weakness, missing element, or unexamined assumption (max 30 words). followup = one pointed question that would strengthen this beat (max 25 words). Be specific to their actual text, never generic.`,
         messages: [{ role: "user", content: `${overviewContext(state.overview)}Framework beat: ${def.title}\nWhat this beat should accomplish: ${def.question}\nThe writer wrote:\n"""${b.answer}"""\n\nJudge this beat both on its own and against the overview — flag anything that contradicts or is unsupported by the premise.` }],
       });
       const j = parseJSON(txt);
@@ -355,7 +387,7 @@ export default function App() {
     setReviewResult(null);
     try {
       const txt = await callClaude({
-        system: `You are a development executive giving structural notes on a SHORT FILM script or treatment. ${styleLine(state.settings.coachStyle)} Return ONLY minified JSON: {"score":<0-100 integer>,"summary":"one-sentence overall read","groups":[{"key":"structure|character|pacing|stakes","items":[{"title":"short label","severity":"high|medium|low","note":"specific, actionable note that references the actual script"}]}]}. Include all four groups (structure, character, pacing, stakes), 1 to 3 items each. Notes must reference real content, not be generic advice. Keep the whole response tight enough to fit comfortably in one short reply.`,
+        system: `You are a development executive giving structural notes on a script or treatment for ${lengthPhrase(state)}. Calibrate your pacing and structure notes specifically to that target length. ${styleLine(state.settings.coachStyle)} Return ONLY minified JSON: {"score":<0-100 integer>,"summary":"one-sentence overall read","groups":[{"key":"structure|character|pacing|stakes","items":[{"title":"short label","severity":"high|medium|low","note":"specific, actionable note that references the actual script"}]}]}. Include all four groups (structure, character, pacing, stakes), 1 to 3 items each. Notes must reference real content, not be generic advice. Keep the whole response tight enough to fit comfortably in one short reply.`,
         messages: [{ role: "user", content: overviewContext(state.overview) + script.slice(0, 7000) }],
       });
       const j = parseJSON(txt);
@@ -502,6 +534,31 @@ export default function App() {
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
+
+  const escapeXML = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+
+  const scriptToFDX = () => {
+    const paragraphs = blocks
+      .filter((b) => (b.text || "").trim())
+      .map((b) => {
+        const type = FDX_TYPE[b.type] || "Action";
+        let text = (b.text || "").trim();
+        if (b.type === "scene" || b.type === "character" || b.type === "transition") text = text.toUpperCase();
+        if (b.type === "paren") text = "(" + text.replace(/^\(|\)$/g, "") + ")";
+        return `    <Paragraph Type="${type}">\n      <Text>${escapeXML(text)}</Text>\n    </Paragraph>`;
+      })
+      .join("\n");
+    return `<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n<FinalDraft DocumentType="Script" Template="No" Version="1">\n  <Content>\n${paragraphs}\n  </Content>\n</FinalDraft>\n`;
+  };
+
+  const exportFDX = () => {
+    const blob = new Blob([scriptToFDX()], { type: "application/xml" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "screenplay.fdx";
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
   const sendToReview = () => { patch({ reviewInput: scriptText() }); setMode("coach"); setCoachTab("review"); };
   const importBeats = () => {
     const useFw = fw || "clock";
@@ -598,6 +655,22 @@ export default function App() {
     { label: "Blunt script-doctor", desc: "Direct, unsparing notes." },
   ];
 
+  const renderLengthPicker = () => (
+    <div className="tl-length-row">
+      <span className="tl-length-label">Target length</span>
+      <select className="tl-length-select" value={state.targetLength} onChange={(e) => patch({ targetLength: e.target.value })}>
+        {LENGTH_OPTIONS.map((o) => <option key={o.key} value={o.key}>{o.label}</option>)}
+      </select>
+      {state.targetLength === "other" && (
+        <input className="tl-length-custom" value={state.targetLengthCustom} onChange={(e) => patch({ targetLengthCustom: e.target.value })} placeholder='e.g. "8 minutes" or "25 pages"' />
+      )}
+    </div>
+  );
+
+  const tRange = targetRange(state);
+  const estMinutes = scriptPages; // ~1 screenplay page \u2248 1 minute of screen time
+  const withinTarget = tRange ? estMinutes >= tRange[0] && estMinutes <= tRange[1] : null;
+
   /* ====================================================================
      Render
      ==================================================================== */
@@ -653,6 +726,8 @@ export default function App() {
 
         /* framework picker */
         .tl-fw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; max-width: 1060px; }
+        .tl-fw-length-wrap { background: #141416; border: 1px solid #26262B; border-radius: 12px; padding: 13px 16px; margin-bottom: 20px; max-width: 560px; }
+        .tl-fw-fit-badge { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600; color: #46D18A; background: rgba(70,209,138,.1); border: 1px solid rgba(70,209,138,.3); border-radius: 6px; padding: 3px 8px; align-self: flex-start; }
         .tl-fw-card { cursor: pointer; text-align: left; background: #141416; border: 1px solid #26262B; border-left: 3px solid #33333A; border-radius: 2px; padding: 20px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s, background .15s; }
         .tl-fw-card:hover { background: #17171A; border-color: #33333A; border-left-color: #FFE600; transform: translateY(-2px); }
         .tl-fw-top { display: flex; align-items: baseline; gap: 9px; margin-bottom: 12px; }
@@ -681,6 +756,18 @@ export default function App() {
         .tl-overview-label { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
         .tl-overview-label span:first-of-type { font-size: 13px; font-weight: 600; color: #EDEDF0; }
         .tl-overview-label span:last-of-type { font-size: 13px; color: #9C9CA4; }
+        .tl-length-row { display: flex; align-items: center; gap: 10px; margin-top: 11px; flex-wrap: wrap; }
+        .tl-length-label { font-size: 12px; color: #8B8B93; font-weight: 600; white-space: nowrap; }
+        .tl-length-select {
+          background: #0E0E10; border: 1px solid #2A2A30; border-radius: 8px; color: #FAFAF9;
+          font-family: 'Inter', sans-serif; font-size: 13px; padding: 7px 10px; outline: none;
+        }
+        .tl-length-select:focus { border-color: #FFE600; box-shadow: 0 0 0 3px rgba(255,230,0,.14); }
+        .tl-length-custom {
+          flex: 1; min-width: 160px; background: #0E0E10; border: 1px solid #2A2A30; border-radius: 8px;
+          color: #FAFAF9; font-family: 'Inter', sans-serif; font-size: 13px; padding: 7px 10px; outline: none;
+        }
+        .tl-length-custom:focus { border-color: #FFE600; box-shadow: 0 0 0 3px rgba(255,230,0,.14); }
         .tl-textarea { width: 100%; resize: vertical; background: #0E0E10; border: 1px solid #2A2A30; border-radius: 10px; color: #FAFAF9; font-size: 14px; line-height: 1.55; padding: 11px 13px; outline: none; font-family: 'Inter', sans-serif; }
         .tl-textarea:focus { border-color: #FFE600; box-shadow: 0 0 0 3px rgba(255,230,0,.14); }
 
@@ -761,6 +848,7 @@ export default function App() {
         .tl-sidebar-head { padding: 16px 16px 12px; border-bottom: 1px solid #1E1E22; }
         .tl-sidebar-title { font-family: var(--brush); font-size: 22px; line-height: 1.1; letter-spacing: 1.5px; color: #FFE600; margin-bottom: 10px; }
         .tl-sidebar-stats { display: flex; gap: 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8B8B93; }
+        .tl-runtime-check { margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
         .tl-sidebar-body { flex: 1; overflow-y: auto; padding: 8px; }
         .tl-quick-block { padding: 4px 4px 12px; border-bottom: 1px solid #17171A; margin-bottom: 8px; }
         .tl-quick-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6C6C74; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
@@ -883,15 +971,20 @@ export default function App() {
                     <div className="tl-eyebrow">Choose a framework</div>
                     <h1 className="tl-h1" style={{ fontSize: 44 }}>Build your story's spine.</h1>
                     <p className="tl-body-copy">Pick a structure and I'll walk you through it beat by beat — asking questions, poking holes, and pushing you to strengthen each turn as you go.</p>
+                    <div className="tl-fw-length-wrap">{renderLengthPicker()}</div>
                     <div className="tl-fw-grid">
-                      {FRAMEWORKS.map((f) => (
-                        <button key={f.key} className="tl-fw-card" onClick={() => patch({ framework: f.key, developView: "write" })}>
-                          <div className="tl-fw-top"><span className="tl-fw-count">{f.count}</span><span className="tl-fw-unit">{f.unit}</span></div>
-                          <div className="tl-fw-name">{f.name}</div>
-                          <p className="tl-fw-blurb">{f.blurb}</p>
-                          <span className="tl-fw-best">{f.best}</span>
-                        </button>
-                      ))}
+                      {FRAMEWORKS.map((f) => {
+                        const goodFit = f.fits.includes(state.targetLength);
+                        return (
+                          <button key={f.key} className="tl-fw-card" onClick={() => patch({ framework: f.key, developView: "write" })}>
+                            <div className="tl-fw-top"><span className="tl-fw-count">{f.count}</span><span className="tl-fw-unit">{f.unit}</span></div>
+                            <div className="tl-fw-name">{f.name}</div>
+                            <p className="tl-fw-blurb">{f.blurb}</p>
+                            <span className="tl-fw-best">{f.best}</span>
+                            {goodFit && <span className="tl-fw-fit-badge">\u2713 Fits your target length</span>}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -903,6 +996,7 @@ export default function App() {
                         <IconOverview /><span>Story overview</span><span>— the coach reads this before poking holes</span>
                       </div>
                       <textarea className="tl-textarea" style={{ minHeight: 60 }} value={state.overview} onChange={(e) => patch({ overview: e.target.value })} placeholder="Logline / premise: who wants what, and what stands in the way? Note the genre, tone, and the ending if you know it." />
+                      {renderLengthPicker()}
                     </div>
 
                     <div className="tl-viewtoggle">
@@ -1036,6 +1130,11 @@ export default function App() {
               <div className="tl-sidebar-head">
                 <div className="tl-sidebar-title">{sidebar.title}</div>
                 <div className="tl-sidebar-stats"><span>{scriptPages} pp</span><span>{blocks.filter((b) => b.type === "scene").length} sc</span><span>{scriptWords} w</span></div>
+                <div className="tl-runtime-check" style={{ color: withinTarget === null ? "#6C6C74" : withinTarget ? "#46D18A" : "#F5A623" }}>
+                  ~{estMinutes} min estimated
+                  {tRange ? ` \u00b7 target ${Math.round(tRange[0])}\u2013${Math.round(tRange[1])}m` : ""}
+                  {withinTarget === false && (estMinutes < tRange[0] ? " \u2014 running short" : " \u2014 running long")}
+                </div>
               </div>
               <div className="tl-sidebar-body">
                 {sidebar.quick.length > 0 && (
@@ -1054,6 +1153,7 @@ export default function App() {
               <div className="tl-sidebar-footer">
                 <button className="tl-sb-btn" onClick={importBeats}>Import beats</button>
                 <button className="tl-sb-btn" onClick={sendToReview}>Send to review</button>
+                <button className="tl-sb-btn" onClick={exportFDX}>Export .fdx</button>
                 <button className="tl-sb-btn primary" onClick={exportFountain}>Export .fountain</button>
               </div>
             </div>
