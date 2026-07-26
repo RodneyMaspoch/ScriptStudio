@@ -558,17 +558,18 @@ export default function App() {
     if (!q) return;
     const n = Math.max(3, Math.min(9, state.settings.referenceCount || 6));
     const f = state.filters;
+    const extraTerms = [f.size, f.angle, f.mood].filter((v) => v && v !== "Any").join(" ");
+    const fullQuery = extraTerms ? `${q} ${extraTerms}` : q;
     setBoardLoading(true);
     setBoardError("");
     setBoardResults([]);
     try {
-      const txt = await callClaude({
-        system: `You are a cinematographer's reference assistant. Given a shot description, suggest ${n} real, recognizable film scenes whose framing and mood match. Return ONLY a minified JSON array: [{"film":"","year":<int>,"scene":"one-line scene description","shotSize":"e.g. Medium wide","angle":"e.g. Over-the-shoulder","lens":"e.g. 40mm","lighting":"short mood phrase","palette":["#hex","#hex","#hex"],"why":"one line on why it matches"}]. palette = 3 hex colors capturing the scene's real color grade. Vary the films across eras and genres unless the query names a specific one.`,
-        messages: [{ role: "user", content: `Shot: ${q}\nPreferred shot size: ${f.size}\nPreferred angle: ${f.angle}\nPreferred mood: ${f.mood}` }],
-      });
-      const j = parseJSON(txt);
-      if (Array.isArray(j) && j.length) setBoardResults(j);
-      else setBoardError("Could not read the references — try rephrasing the shot.");
+      const res = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(fullQuery)}&page_size=${n}`);
+      if (!res.ok) throw new Error("Search request failed.");
+      const data = await res.json();
+      const results = data.results || [];
+      if (results.length) setBoardResults(results);
+      else setBoardError("No reference images matched \u2014 try simpler, more visual terms.");
     } catch (e) {
       setBoardError(e.message || "Something went wrong. Try again.");
     } finally {
@@ -1044,9 +1045,12 @@ export default function App() {
         .tl-skeleton-grid, .tl-results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 18px; }
         .tl-skel-card { background: #141416; border: 1px solid #1E1E22; border-radius: 14px; overflow: hidden; }
         .tl-skel-frame { aspect-ratio: 2.39/1; background: linear-gradient(100deg, #161619, #1E1E22, #161619); animation: tl-pulse 1.4s ease-in-out infinite; }
-        .tl-result-card { background: #141416; border: 1px solid #26262B; border-radius: 14px; overflow: hidden; }
+        .tl-result-card { display: block; background: #141416; border: 1px solid #26262B; border-radius: 14px; overflow: hidden; text-decoration: none; color: inherit; cursor: pointer; }
         .tl-result-card:hover { border-color: rgba(255,230,0,.4); }
-        .tl-result-frame { position: relative; aspect-ratio: 2.39/1; background: #000; }
+        .tl-result-linkrow { display: flex; align-items: center; gap: 6px; margin-top: 10px; padding-top: 9px; border-top: 1px solid #1E1E22; font-size: 11.5px; font-weight: 600; color: #FFE600; }
+        .tl-result-card:hover .tl-result-linkrow { text-decoration: underline; }
+        .tl-result-frame { position: relative; aspect-ratio: 2.39/1; background: #000; overflow: hidden; }
+        .tl-result-img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .tl-result-badge { position: absolute; font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 6px; backdrop-filter: blur(4px); }
         .tl-result-body { padding: 14px 15px; }
         .tl-result-title-row { display: flex; align-items: baseline; gap: 7px; margin-bottom: 2px; }
@@ -1374,7 +1378,7 @@ export default function App() {
                 <div className="tl-filter-row"><span className="tl-filter-label">Mood</span>{moodChips.map((c, ci) => <button key={ci} className={`tl-filter-chip ${c.active ? "active" : ""}`} onClick={c.onClick}>{c.label}</button>)}</div>
               </div>
               <div className="tl-board-footer">
-                <span className="tl-board-disclosure"><IconInfo /> AI-matched references. Live still search is coming soon.</span>
+                <span className="tl-board-disclosure"><IconInfo /> Real, openly-licensed reference photography — not exact film stills.</span>
                 <button className="tl-primary-btn" onClick={() => runSearch()} disabled={boardLoading}><IconSearch /> Search references</button>
               </div>
             </div>
@@ -1401,32 +1405,23 @@ export default function App() {
 
             {!boardLoading && boardResults.length > 0 && (
               <div style={{ marginTop: 24 }}>
-                <div style={{ fontSize: 13, color: "#8B8B93", marginBottom: 14 }}>{boardResults.length} references matched to your shot</div>
+                <div style={{ fontSize: 13, color: "#8B8B93", marginBottom: 14 }}>{boardResults.length} reference photos matched to your shot</div>
                 <div className="tl-results-grid">
-                  {boardResults.map((r, ri) => {
-                    const pal = Array.isArray(r.palette) && r.palette.length >= 2 ? r.palette : ["#2b2b33", "#4a4550", "#141416"];
-                    const gradient = `linear-gradient(135deg, ${pal[0] || "#2b2b33"}, ${pal[1] || pal[0]} 55%, ${pal[2] || pal[1] || "#141416"})`;
-                    return (
-                      <div className="tl-result-card tl-up" key={ri}>
-                        <div className="tl-result-frame">
-                          <div style={{ position: "absolute", inset: 0, background: gradient }} />
-                          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,.35), transparent 30%, transparent 62%, rgba(0,0,0,.7))" }} />
-                          <span className="tl-result-badge" style={{ top: 10, left: 10, background: "rgba(0,0,0,.55)", color: "#FFE600", border: "1px solid rgba(255,230,0,.4)" }}>{r.shotSize || "Shot"}</span>
-                          <span className="tl-result-badge" style={{ bottom: 10, left: 10, background: "rgba(0,0,0,.5)", color: "#E6E6EA" }}>{r.angle || ""}</span>
-                          <span className="tl-result-badge" style={{ bottom: 10, right: 10, background: "rgba(0,0,0,.5)", color: "#E6E6EA" }}>{r.lens || ""}</span>
-                        </div>
-                        <div className="tl-result-body">
-                          <div className="tl-result-title-row"><span className="tl-result-film">{r.film}</span><span className="tl-result-year">{r.year}</span></div>
-                          <div className="tl-result-scene">{r.scene}</div>
-                          <div className="tl-result-tags">
-                            <span className="tl-lighting-chip">{r.lighting}</span>
-                            {pal.slice(0, 4).map((c, si) => <span key={si} className="tl-swatch" style={{ background: c }} />)}
-                          </div>
-                          <div className="tl-result-why"><b>Why:</b> {r.why}</div>
-                        </div>
+                  {boardResults.map((r, ri) => (
+                    <a className="tl-result-card tl-up" key={r.id || ri} href={r.foreign_landing_url} target="_blank" rel="noopener noreferrer">
+                      <div className="tl-result-frame">
+                        <img className="tl-result-img" src={r.thumbnail || r.url} alt={r.title || "reference photo"} loading="lazy" />
                       </div>
-                    );
-                  })}
+                      <div className="tl-result-body">
+                        <div className="tl-result-title-row"><span className="tl-result-film">{r.title || "Untitled"}</span></div>
+                        <div className="tl-result-scene">{r.creator ? `by ${r.creator}` : "Unknown creator"}</div>
+                        <div className="tl-result-tags">
+                          <span className="tl-lighting-chip">{r.license ? r.license.toUpperCase() : "CC"}</span>
+                        </div>
+                        <div className="tl-result-linkrow"><IconSearch size={12} /> View source</div>
+                      </div>
+                    </a>
+                  ))}
                 </div>
               </div>
             )}
