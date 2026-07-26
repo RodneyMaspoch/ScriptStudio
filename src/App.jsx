@@ -1399,6 +1399,12 @@ export default function App() {
                 <a className="tl-stills-link" href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Google Images ↗
                 </a>
+                <a className="tl-stills-link" href="https://shot.cafe/" target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Shot.cafe (free, tagged stills) ↗
+                </a>
+                <a className="tl-stills-link" href="https://www.moviestillsdb.com/search" target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> MovieStillsDB (free, editorial stills) ↗
+                </a>
                 <a className="tl-stills-link" href="https://film-grab.com/" target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Film Grab (browse by film) ↗
                 </a>
