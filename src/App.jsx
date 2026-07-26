@@ -155,22 +155,67 @@ const DEFAULT_STATE = {
    Storage + AI helpers
    ====================================================================== */
 
-const STORAGE_KEY = "scriptstudio_v1";
+const LEGACY_STORAGE_KEY = "scriptstudio_v1";
+const INDEX_KEY = "scriptstudio_index";
+const projectKey = (id) => `scriptstudio_project:${id}`;
+const newProjectId = () => "proj_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 
-async function loadPersisted() {
+async function loadIndex() {
   try {
-    const res = await window.storage.get(STORAGE_KEY, false);
+    const res = await window.storage.get(INDEX_KEY, false);
+    return res ? JSON.parse(res.value) : [];
+  } catch (e) {
+    return [];
+  }
+}
+async function saveIndex(list) {
+  try {
+    await window.storage.set(INDEX_KEY, JSON.stringify(list), false);
+  } catch (e) {
+    console.error("saveIndex failed", e);
+  }
+}
+async function loadProjectData(id) {
+  try {
+    const res = await window.storage.get(projectKey(id), false);
     return res ? JSON.parse(res.value) : null;
   } catch (e) {
     return null;
   }
 }
-async function savePersisted(obj) {
+async function saveProjectData(id, data) {
   try {
-    await window.storage.set(STORAGE_KEY, JSON.stringify(obj), false);
+    await window.storage.set(projectKey(id), JSON.stringify(data), false);
   } catch (e) {
-    console.error("save failed", e);
+    console.error("saveProjectData failed", e);
   }
+}
+async function deleteProjectData(id) {
+  try {
+    await window.storage.delete(projectKey(id), false);
+  } catch (e) {
+    console.error("deleteProjectData failed", e);
+  }
+}
+
+// One-time migration: if this browser has data from before multi-project support
+// existed, fold it into a new "My First Project" entry instead of losing it.
+async function migrateLegacyIfNeeded() {
+  let existingIndex = await loadIndex();
+  if (existingIndex.length > 0) return existingIndex;
+  let legacy = null;
+  try {
+    const res = await window.storage.get(LEGACY_STORAGE_KEY, false);
+    legacy = res ? JSON.parse(res.value) : null;
+  } catch (e) {
+    legacy = null;
+  }
+  const id = newProjectId();
+  const data = legacy || { ...DEFAULT_STATE };
+  await saveProjectData(id, data);
+  const idx = [{ id, title: legacy ? "My First Project" : "Untitled Project", updatedAt: Date.now() }];
+  await saveIndex(idx);
+  return idx;
 }
 
 // Set this to your deployed AI proxy Worker URL (see worker/index.js + README).
@@ -243,6 +288,26 @@ const IconSettings = () => (
     <path d="M6 3v6m0 12v-6M12 3v10m0 8v-4M18 3v3m0 15v-9"></path><path d="M4 9h4m2 6h4m2-9h4"></path>
   </svg>
 );
+const IconFolder = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path>
+  </svg>
+);
+const IconPen = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+  </svg>
+);
+const IconCheckSmall = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 6 9 17l-5-5"></path>
+  </svg>
+);
+const IconTrash = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"></path>
+  </svg>
+);
 const IconOverview = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FFE600" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5h18M3 12h18M3 19h12"></path></svg>
 );
@@ -294,6 +359,13 @@ export default function App() {
   const [state, setState] = useState(DEFAULT_STATE);
   const [hydrated, setHydrated] = useState(false);
 
+  const [projects, setProjects] = useState([]);
+  const [activeProjectId, setActiveProjectId] = useState(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const [renameDraftId, setRenameDraftId] = useState(null);
+  const [renameDraftText, setRenameDraftText] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+
   const [mode, setMode] = useState("coach");
   const [coachTab, setCoachTab] = useState("develop");
   const [focusIdx, setFocusIdx] = useState(0);
@@ -311,23 +383,92 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      const p = await loadPersisted();
-      if (p) setState((s) => ({ ...s, ...p }));
+      const idx = await migrateLegacyIfNeeded();
+      const sorted = [...idx].sort((a, b) => b.updatedAt - a.updatedAt);
+      setProjects(sorted);
+      const first = sorted[0];
+      if (first) {
+        const data = await loadProjectData(first.id);
+        setState((s) => ({ ...s, ...(data || {}) }));
+        setActiveProjectId(first.id);
+      }
       setHydrated(true);
     })();
   }, []);
 
   useEffect(() => {
-    if (!hydrated) return;
-    savePersisted({
+    if (!hydrated || !activeProjectId) return;
+    const data = {
       framework: state.framework, data: state.data, reviewInput: state.reviewInput,
       boardQuery: state.boardQuery, filters: state.filters, developView: state.developView,
       overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom,
       settings: state.settings, script: state.script,
+    };
+    saveProjectData(activeProjectId, data);
+    setProjects((prev) => {
+      const next = prev.map((p) => (p.id === activeProjectId ? { ...p, updatedAt: Date.now() } : p));
+      saveIndex(next);
+      return next;
     });
-  }, [state, hydrated]);
+  }, [state, hydrated, activeProjectId]);
+
+  const resetEphemeralUI = () => {
+    setFocusIdx(0);
+    setReviewResult(null);
+    setBoardResults([]);
+    setBoardError("");
+  };
+
+  const switchProject = async (id) => {
+    if (id === activeProjectId) { setLibraryOpen(false); return; }
+    const data = await loadProjectData(id);
+    setState({ ...DEFAULT_STATE, ...(data || {}) });
+    setActiveProjectId(id);
+    resetEphemeralUI();
+    setLibraryOpen(false);
+  };
+
+  const createProject = async () => {
+    const id = newProjectId();
+    const fresh = { ...DEFAULT_STATE };
+    await saveProjectData(id, fresh);
+    const entry = { id, title: "Untitled Project", updatedAt: Date.now() };
+    const next = [entry, ...projects];
+    setProjects(next);
+    await saveIndex(next);
+    setState(fresh);
+    setActiveProjectId(id);
+    resetEphemeralUI();
+    setLibraryOpen(false);
+  };
+
+  const deleteProject = async (id) => {
+    await deleteProjectData(id);
+    const next = projects.filter((p) => p.id !== id);
+    setProjects(next);
+    await saveIndex(next);
+    setConfirmDeleteId(null);
+    if (id === activeProjectId) {
+      if (next.length > 0) {
+        await switchProject(next[0].id);
+      } else {
+        await createProject();
+      }
+    }
+  };
+
+  const startRename = (p) => { setRenameDraftId(p.id); setRenameDraftText(p.title); };
+  const saveRename = async () => {
+    if (!renameDraftId) return;
+    const title = renameDraftText.trim() || "Untitled Project";
+    const next = projects.map((p) => (p.id === renameDraftId ? { ...p, title } : p));
+    setProjects(next);
+    await saveIndex(next);
+    setRenameDraftId(null);
+  };
 
   const patch = useCallback((p) => setState((s) => ({ ...s, ...(typeof p === "function" ? p(s) : p) })), []);
+  const activeProjectTitle = projects.find((p) => p.id === activeProjectId)?.title || "Untitled Project";
 
   const getBeat = (fw, i) => (state.data[fw] && state.data[fw][i]) || { answer: "", status: "empty" };
   const patchBeat = (fw, i, p) => {
@@ -922,6 +1063,18 @@ export default function App() {
         .tl-stepper-btn:hover { background: #1A1A1D; border-color: #FFE600; }
         .tl-refcount-num { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700; min-width: 28px; text-align: center; }
         .tl-drawer-hint { font-size: 12px; color: #5E5E66; line-height: 1.5; }
+        .tl-project-list { display: flex; flex-direction: column; gap: 6px; }
+        .tl-project-row { display: flex; align-items: center; gap: 6px; background: #141416; border: 1px solid #26262B; border-radius: 10px; padding: 4px; }
+        .tl-project-row.active { border-color: rgba(255,230,0,.5); background: rgba(255,230,0,.06); }
+        .tl-project-open { flex: 1; min-width: 0; text-align: left; background: none; border: none; padding: 8px 9px; display: flex; flex-direction: column; gap: 2px; }
+        .tl-project-title { font-size: 13px; font-weight: 600; color: #FAFAF9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tl-project-meta { font-size: 11px; color: #6C6C74; }
+        .tl-project-actions { display: flex; gap: 2px; flex: none; }
+        .tl-project-icon-btn { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 7px; color: #6C6C74; }
+        .tl-project-icon-btn:hover { background: #1E1E22; color: #FAFAF9; }
+        .tl-project-icon-btn.danger { color: #FF7A7A; }
+        .tl-project-icon-btn.danger:hover { background: rgba(255,90,90,.12); }
+        .tl-project-rename-input { flex: 1; background: #0E0E10; border: 1px solid #FFE600; border-radius: 8px; color: #FAFAF9; font-size: 13px; padding: 8px 9px; outline: none; }
       `}</style>
 
       {/* ---------------- Header ---------------- */}
@@ -937,7 +1090,10 @@ export default function App() {
           <button className={`tl-navtab ${mode === "script" ? "active" : ""}`} onClick={() => setMode("script")}><IconScript /> Script</button>
           <button className={`tl-navtab ${mode === "board" ? "active" : ""}`} onClick={() => setMode("board")}><IconBoard /> Storyboard</button>
         </div>
-        <button className="tl-settingsbtn" onClick={() => setSettingsOpen(true)}><IconSettings /> Settings</button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button className="tl-settingsbtn" onClick={() => setLibraryOpen(true)}><IconFolder /> <span style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProjectTitle}</span></button>
+          <button className="tl-settingsbtn" onClick={() => setSettingsOpen(true)}><IconSettings /> Settings</button>
+        </div>
       </div>
 
       <div className="tl-scroll">
@@ -981,7 +1137,7 @@ export default function App() {
                             <div className="tl-fw-name">{f.name}</div>
                             <p className="tl-fw-blurb">{f.blurb}</p>
                             <span className="tl-fw-best">{f.best}</span>
-                            {goodFit && <span className="tl-fw-fit-badge">\u2713 Fits your target length</span>}
+                            {goodFit && <span className="tl-fw-fit-badge">✓ Fits your target length</span>}
                           </button>
                         );
                       })}
@@ -1260,6 +1416,54 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {libraryOpen && (
+        <>
+          <div className="tl-drawer-backdrop" onClick={() => setLibraryOpen(false)} />
+          <div className="tl-drawer">
+            <div className="tl-drawer-head">
+              <span className="tl-drawer-title">Your projects</span>
+              <button className="tl-drawer-close" onClick={() => setLibraryOpen(false)}><IconClose /></button>
+            </div>
+
+            <button className="tl-primary-btn" style={{ width: "100%", justifyContent: "center", marginBottom: 16 }} onClick={createProject}>
+              + New project
+            </button>
+
+            <div className="tl-drawer-section-label">Saved</div>
+            <div className="tl-project-list">
+              {projects.map((p) => (
+                <div key={p.id} className={`tl-project-row ${p.id === activeProjectId ? "active" : ""}`}>
+                  {renameDraftId === p.id ? (
+                    <input
+                      className="tl-project-rename-input"
+                      value={renameDraftText}
+                      autoFocus
+                      onChange={(e) => setRenameDraftText(e.target.value)}
+                      onBlur={saveRename}
+                      onKeyDown={(e) => e.key === "Enter" && e.target.blur()}
+                    />
+                  ) : (
+                    <button className="tl-project-open" onClick={() => switchProject(p.id)}>
+                      <span className="tl-project-title">{p.title}</span>
+                      <span className="tl-project-meta">Updated {new Date(p.updatedAt).toLocaleDateString()}</span>
+                    </button>
+                  )}
+                  <div className="tl-project-actions">
+                    <button className="tl-project-icon-btn" title="Rename" onClick={() => startRename(p)}><IconPen /></button>
+                    {confirmDeleteId === p.id ? (
+                      <button className="tl-project-icon-btn danger" title="Confirm delete" onClick={() => deleteProject(p.id)}><IconCheckSmall /></button>
+                    ) : (
+                      <button className="tl-project-icon-btn" title="Delete" onClick={() => setConfirmDeleteId(p.id)}><IconTrash /></button>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {projects.length === 0 && <div className="tl-drawer-hint">No projects yet — create one above.</div>}
+            </div>
+          </div>
+        </>
+      )}
 
       {settingsOpen && (
         <>
