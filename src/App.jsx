@@ -1033,6 +1033,12 @@ export default function App() {
 
         /* storyboard */
         .tl-query-card { background: #141416; border: 1px solid #26262B; border-radius: 18px; padding: 18px; }
+        .tl-stills-card { background: #141416; border: 1px dashed #2A2A30; border-radius: 16px; padding: 16px 18px; margin-top: 16px; }
+        .tl-stills-title { font-size: 13px; font-weight: 600; color: #EDEDF0; margin-bottom: 6px; }
+        .tl-stills-copy { font-size: 12.5px; color: #8B8B93; line-height: 1.55; margin: 0 0 12px; max-width: 640px; }
+        .tl-stills-links { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tl-stills-link { display: inline-flex; align-items: center; gap: 6px; background: #1A1A1D; border: 1px solid #26262B; border-radius: 8px; padding: 7px 12px; font-size: 12.5px; color: #C9C9CE; text-decoration: none; }
+        .tl-stills-link:hover { border-color: rgba(255,230,0,.4); color: #fff; }
         .tl-filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .tl-filter-label { font-size: 13px; color: #5E5E66; width: 66px; flex: none; }
         .tl-filter-chip { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; background: #141416; border: 1px solid #26262B; color: #9C9CA4; }
@@ -1380,6 +1386,25 @@ export default function App() {
               <div className="tl-board-footer">
                 <span className="tl-board-disclosure"><IconInfo /> Real, openly-licensed reference photography — not exact film stills.</span>
                 <button className="tl-primary-btn" onClick={() => runSearch()} disabled={boardLoading}><IconSearch /> Search references</button>
+              </div>
+            </div>
+
+            <div className="tl-stills-card">
+              <div className="tl-stills-title">Looking for actual movie stills?</div>
+              <p className="tl-stills-copy">
+                I can't reproduce or embed real film frames here — that's real studio-owned footage, not something a free tool can legally serve.
+                What I can do is jump you straight to where people actually browse for this, pre-filled with your shot description where possible.
+              </p>
+              <div className="tl-stills-links">
+                <a className="tl-stills-link" href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Google Images ↗
+                </a>
+                <a className="tl-stills-link" href="https://film-grab.com/" target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Film Grab (browse by film) ↗
+                </a>
+                <a className="tl-stills-link" href="https://shotdeck.com/" target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> ShotDeck (free account needed) ↗
+                </a>
               </div>
             </div>
 
