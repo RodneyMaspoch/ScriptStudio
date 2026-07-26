@@ -378,6 +378,9 @@ export default function App() {
   const [boardResults, setBoardResults] = useState([]);
   const [boardError, setBoardError] = useState("");
 
+  const [justSaved, setJustSaved] = useState(false);
+  const saveFlashTimeout = useRef(null);
+
   const blockRefs = useRef([]);
   const beatSectionRefs = useRef({});
 
@@ -404,7 +407,11 @@ export default function App() {
       overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom,
       settings: state.settings, script: state.script,
     };
-    saveProjectData(activeProjectId, data);
+    saveProjectData(activeProjectId, data).then(() => {
+      setJustSaved(true);
+      clearTimeout(saveFlashTimeout.current);
+      saveFlashTimeout.current = setTimeout(() => setJustSaved(false), 1600);
+    });
     setProjects((prev) => {
       const next = prev.map((p) => (p.id === activeProjectId ? { ...p, updatedAt: Date.now() } : p));
       saveIndex(next);
@@ -857,6 +864,8 @@ export default function App() {
         .tl-navtab:hover:not(.active) { background: #FFE600; color: #0A0A0B; }
         .tl-settingsbtn { display: inline-flex; align-items: center; gap: 7px; background: #141416; border: 1px solid #1E1E22; color: #C9C9CE; border-radius: 999px; padding: 6px 13px; font-size: 13px; font-weight: 500; }
         .tl-settingsbtn:hover { background: #17171A; border-color: #FFE600; color: #fff; }
+        .tl-saved-flash { font-size: 12px; color: #46D18A; opacity: 0; transition: opacity .3s ease; }
+        .tl-saved-flash.visible { opacity: 1; }
 
         .tl-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
         .tl-page-wrap { max-width: 1120px; margin: 0 auto; padding: 26px 24px 60px; }
@@ -900,10 +909,10 @@ export default function App() {
         .tl-length-row { display: flex; align-items: center; gap: 10px; margin-top: 11px; flex-wrap: wrap; }
         .tl-length-label { font-size: 12px; color: #8B8B93; font-weight: 600; white-space: nowrap; }
         .tl-length-select {
-          background: #0E0E10; border: 1px solid #2A2A30; border-radius: 8px; color: #FAFAF9;
-          font-family: 'Inter', sans-serif; font-size: 13px; padding: 7px 10px; outline: none;
+          background: none; border: none; color: #FAFAF9; font-family: 'Inter', sans-serif;
+          font-size: 13px; padding: 2px 2px; outline: none; cursor: pointer;
         }
-        .tl-length-select:focus { border-color: #FFE600; box-shadow: 0 0 0 3px rgba(255,230,0,.14); }
+        .tl-length-select:focus { text-decoration: underline; text-underline-offset: 3px; }
         .tl-length-custom {
           flex: 1; min-width: 160px; background: #0E0E10; border: 1px solid #2A2A30; border-radius: 8px;
           color: #FAFAF9; font-family: 'Inter', sans-serif; font-size: 13px; padding: 7px 10px; outline: none;
@@ -1091,6 +1100,7 @@ export default function App() {
           <button className={`tl-navtab ${mode === "board" ? "active" : ""}`} onClick={() => setMode("board")}><IconBoard /> Storyboard</button>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span className={`tl-saved-flash ${justSaved ? "visible" : ""}`}>Saved</span>
           <button className="tl-settingsbtn" onClick={() => setLibraryOpen(true)}><IconFolder /> <span style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProjectTitle}</span></button>
           <button className="tl-settingsbtn" onClick={() => setSettingsOpen(true)}><IconSettings /> Settings</button>
         </div>
