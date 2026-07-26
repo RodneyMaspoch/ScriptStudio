@@ -392,7 +392,7 @@ export default function App() {
       const first = sorted[0];
       if (first) {
         const data = await loadProjectData(first.id);
-        setState((s) => ({ ...s, ...(data || {}) }));
+        setState((s) => ({ ...s, ...(data || {}), boardQuery: "", filters: { size: "Any", angle: "Any", mood: "Any" } }));
         setActiveProjectId(first.id);
       }
       setHydrated(true);
@@ -403,7 +403,7 @@ export default function App() {
     if (!hydrated || !activeProjectId) return;
     const data = {
       framework: state.framework, data: state.data, reviewInput: state.reviewInput,
-      boardQuery: state.boardQuery, filters: state.filters, developView: state.developView,
+      developView: state.developView,
       overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom,
       settings: state.settings, script: state.script,
     };
@@ -432,7 +432,7 @@ export default function App() {
   const switchProject = async (id) => {
     if (id === activeProjectId) { setLibraryOpen(false); return; }
     const data = await loadProjectData(id);
-    setState({ ...DEFAULT_STATE, ...(data || {}) });
+    setState({ ...DEFAULT_STATE, ...(data || {}), boardQuery: "", filters: { size: "Any", angle: "Any", mood: "Any" } });
     setActiveProjectId(id);
     resetEphemeralUI();
     setLibraryOpen(false);
@@ -1393,11 +1393,12 @@ export default function App() {
               <div className="tl-stills-title">Looking for actual movie stills?</div>
               <p className="tl-stills-copy">
                 I can't reproduce or embed real film frames here — that's real studio-owned footage, not something a free tool can legally serve.
-                What I can do is jump you straight to where people actually browse for this, pre-filled with your shot description where possible.
+                Google Images below opens pre-filled with your shot description. The other three are real, free stills databases people actually use for this —
+                none of them expose a way to pre-fill a search, so you'll paste your description in once you're there.
               </p>
               <div className="tl-stills-links">
                 <a className="tl-stills-link" href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> Google Images ↗
+                  <IconSearch size={13} /> Google Images (pre-filled) ↗
                 </a>
                 <a className="tl-stills-link" href="https://shot.cafe/" target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Shot.cafe (free, tagged stills) ↗
@@ -1407,9 +1408,6 @@ export default function App() {
                 </a>
                 <a className="tl-stills-link" href="https://film-grab.com/" target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Film Grab (browse by film) ↗
-                </a>
-                <a className="tl-stills-link" href="https://shotdeck.com/" target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> ShotDeck (free account needed) ↗
                 </a>
               </div>
             </div>
