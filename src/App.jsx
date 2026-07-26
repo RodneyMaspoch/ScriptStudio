@@ -407,16 +407,19 @@ export default function App() {
       overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom,
       settings: state.settings, script: state.script,
     };
-    saveProjectData(activeProjectId, data).then(() => {
-      setJustSaved(true);
-      clearTimeout(saveFlashTimeout.current);
-      saveFlashTimeout.current = setTimeout(() => setJustSaved(false), 1600);
-    });
-    setProjects((prev) => {
-      const next = prev.map((p) => (p.id === activeProjectId ? { ...p, updatedAt: Date.now() } : p));
-      saveIndex(next);
-      return next;
-    });
+    const debounce = setTimeout(() => {
+      saveProjectData(activeProjectId, data).then(() => {
+        setJustSaved(true);
+        clearTimeout(saveFlashTimeout.current);
+        saveFlashTimeout.current = setTimeout(() => setJustSaved(false), 1600);
+      });
+      setProjects((prev) => {
+        const next = prev.map((p) => (p.id === activeProjectId ? { ...p, updatedAt: Date.now() } : p));
+        saveIndex(next);
+        return next;
+      });
+    }, 600);
+    return () => clearTimeout(debounce);
   }, [state, hydrated, activeProjectId]);
 
   const resetEphemeralUI = () => {
@@ -876,7 +879,7 @@ export default function App() {
 
         /* framework picker */
         .tl-fw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; max-width: 1060px; }
-        .tl-fw-length-wrap { background: #141416; border: 1px solid #26262B; border-radius: 12px; padding: 13px 16px; margin-bottom: 20px; max-width: 560px; }
+        .tl-fw-length-wrap { background: none; border: none; padding: 0; margin-bottom: 20px; max-width: 560px; }
         .tl-fw-fit-badge { display: inline-block; margin-top: 10px; font-size: 11px; font-weight: 600; color: #46D18A; background: rgba(70,209,138,.1); border: 1px solid rgba(70,209,138,.3); border-radius: 6px; padding: 3px 8px; align-self: flex-start; }
         .tl-fw-card { cursor: pointer; text-align: left; background: #141416; border: 1px solid #26262B; border-left: 3px solid #33333A; border-radius: 2px; padding: 20px; display: flex; flex-direction: column; transition: border-color .15s, transform .15s, background .15s; }
         .tl-fw-card:hover { background: #17171A; border-color: #33333A; border-left-color: #FFE600; transform: translateY(-2px); }
@@ -910,9 +913,13 @@ export default function App() {
         .tl-length-label { font-size: 12px; color: #8B8B93; font-weight: 600; white-space: nowrap; }
         .tl-length-select {
           background: none; border: none; color: #FAFAF9; font-family: 'Inter', sans-serif;
-          font-size: 13px; padding: 2px 2px; outline: none; cursor: pointer;
+          font-size: 13px; padding: 2px 18px 2px 2px; outline: none; cursor: pointer;
+          -webkit-appearance: none; -moz-appearance: none; appearance: none;
+          background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%238B8B93'/></svg>");
+          background-repeat: no-repeat; background-position: right 2px center;
         }
         .tl-length-select:focus { text-decoration: underline; text-underline-offset: 3px; }
+        .tl-length-select option { background: #141416; color: #FAFAF9; }
         .tl-length-custom {
           flex: 1; min-width: 160px; background: #0E0E10; border: 1px solid #2A2A30; border-radius: 8px;
           color: #FAFAF9; font-family: 'Inter', sans-serif; font-size: 13px; padding: 7px 10px; outline: none;
