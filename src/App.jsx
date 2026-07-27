@@ -906,7 +906,7 @@ export default function App() {
         .tl-fw-count { font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; line-height: 1; color: #FFE600; }
         .tl-fw-unit { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: #6C6C74; font-weight: 600; }
         .tl-fw-name { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.01em; }
-        .tl-fw-blurb { margin: 0 0 12px; font-size: 13px; color: #8B8B93; line-height: 1.5; flex: 1; }
+        .tl-fw-blurb { margin: 0 0 12px; font-size: 13px; color: #C9C9CE; line-height: 1.5; flex: 1; }
         .tl-fw-best { font-size: 12px; color: #5E5E66; letter-spacing: .04em; }
 
         /* develop header */
@@ -1416,7 +1416,7 @@ export default function App() {
               <div className="tl-stills-title">Looking for actual movie stills?</div>
               <p className="tl-stills-copy">
                 I can't reproduce or embed real film frames here — that's real studio-owned footage, not something a free tool can legally serve.
-                Google Images and Film Grab open pre-filled with your shot description above. Shot.cafe doesn't expose a way to pre-fill a search,
+                Google Images, Film Grab, and Frameset all open pre-filled with your shot description above. Shot.cafe doesn't expose a way to pre-fill a search,
                 so you'll paste your description in once you're there.
               </p>
               <div className="tl-stills-links">
@@ -1425,6 +1425,9 @@ export default function App() {
                 </a>
                 <a className="tl-stills-link" href={`https://film-grab.com/?s=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Film Grab (pre-filled) ↗
+                </a>
+                <a className="tl-stills-link" href={`https://frameset.app/search?search=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Frameset (pre-filled) ↗
                 </a>
                 <a className="tl-stills-link" href="https://shot.cafe/" target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Shot.cafe (free, tagged stills) ↗
