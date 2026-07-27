@@ -872,8 +872,10 @@ export default function App() {
         .tl-up { animation: tl-up .3s ease-out; }
 
         /* header */
-        .tl-header { flex: none; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 20px; border-bottom: 1px solid #1E1E22; background: rgba(10,10,11,.75); backdrop-filter: blur(10px); z-index: 20; }
+        .tl-header { flex: none; height: 60px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 0 20px; border-bottom: 1px solid #1E1E22; background: rgba(10,10,11,.75); backdrop-filter: blur(10px); z-index: 20; }
+        .tl-header-right { display: flex; align-items: center; gap: 8px; justify-self: end; min-width: 0; }
         .tl-brand { display: flex; align-items: center; gap: 11px; }
+        .tl-brand-logo { height: 30px; width: auto; display: block; }
         .tl-brand-mark { width: 30px; height: 30px; border-radius: 8px; background: #FFE600; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(255,230,0,.4), 0 6px 18px -6px rgba(255,230,0,.5); flex: none; }
         .tl-brand-text { display: flex; flex-direction: column; line-height: 1.05; }
         .tl-brand-name { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: -.01em; }
@@ -1129,17 +1131,14 @@ export default function App() {
       {/* ---------------- Header ---------------- */}
       <div className="tl-header">
         <div className="tl-brand">
-          <div className="tl-brand-mark"><IconClapper /></div>
-          <div className="tl-brand-text">
-            <span className="tl-brand-name">Script Studio</span>
-          </div>
+          <img src="/logo-long.png" alt="Script Studio" className="tl-brand-logo" />
         </div>
         <div className="tl-nav">
           <button className={`tl-navtab ${mode === "coach" ? "active" : ""}`} onClick={() => setMode("coach")}><IconCoach /> Story Coach</button>
           <button className={`tl-navtab ${mode === "script" ? "active" : ""}`} onClick={() => setMode("script")}><IconScript /> Script</button>
           <button className={`tl-navtab ${mode === "board" ? "active" : ""}`} onClick={() => setMode("board")}><IconBoard /> Storyboard</button>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div className="tl-header-right">
           <span className={`tl-saved-flash ${justSaved ? "visible" : ""}`}>Saved</span>
           <button className="tl-settingsbtn" onClick={() => setLibraryOpen(true)}><IconFolder /> <span style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProjectTitle}</span></button>
           <button className="tl-settingsbtn" onClick={() => setSettingsOpen(true)}><IconSettings /> Settings</button>
@@ -1437,7 +1436,7 @@ export default function App() {
               <div className="tl-stills-title">Already know which film you want stills from?</div>
               <p className="tl-stills-copy">
                 MovieStillsDB, Film Grab, and Film Vibes are all organized by film, not by shot description — useless above if you already know
-                the title, genuinely useful once you type it here. Film Vibes needs a free account and its link is a best-guess match (it may not
+                the title, genuinely useful once you type it here. Film Vibes' link is a best-guess match (it may not
                 land exactly for every title). IMDb's thrown in too, for quick cast/scene context while you browse.
               </p>
               <div className="tl-stills-filmrow">
@@ -1456,7 +1455,7 @@ export default function App() {
                   <IconSearch size={13} /> Film Grab ↗
                 </a>
                 <a className="tl-stills-link" href={`https://filmvibes.io/movies/${slugify(filmTitle)}`} target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> Film Vibes (free account needed) ↗
+                  <IconSearch size={13} /> Film Vibes ↗
                 </a>
                 <a className="tl-stills-link" href={`https://www.imdb.com/find/?q=${encodeURIComponent(filmTitle)}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> IMDb ↗
