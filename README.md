@@ -78,4 +78,4 @@ ever talks to `window.storage.get/set/delete/list`.
 sitting in `public/fonts/`. Make sure your license covers using it this way
 before publishing publicly.
 
-# trigger deployment
+# trigger
