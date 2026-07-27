@@ -1131,7 +1131,7 @@ export default function App() {
       {/* ---------------- Header ---------------- */}
       <div className="tl-header">
         <div className="tl-brand">
-          <img src="/logo-long.png" alt="Script Studio" className="tl-brand-logo" />
+          <img src="/logo.png" alt="Script Studio" className="tl-brand-logo" />
         </div>
         <div className="tl-nav">
           <button className={`tl-navtab ${mode === "coach" ? "active" : ""}`} onClick={() => setMode("coach")}><IconCoach /> Story Coach</button>
