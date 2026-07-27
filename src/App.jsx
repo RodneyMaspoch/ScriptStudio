@@ -702,6 +702,7 @@ export default function App() {
   };
 
   const escapeXML = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+  const slugify = (s) => String(s).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 
   const scriptToFDX = () => {
     const paragraphs = blocks
@@ -1435,8 +1436,9 @@ export default function App() {
 
               <div className="tl-stills-title">Already know which film you want stills from?</div>
               <p className="tl-stills-copy">
-                MovieStillsDB and Film Grab are both organized by film, not by shot description — useless above if you already know the title,
-                genuinely useful once you type it here. IMDb's thrown in too, for quick cast/scene context while you browse.
+                MovieStillsDB, Film Grab, and Film Vibes are all organized by film, not by shot description — useless above if you already know
+                the title, genuinely useful once you type it here. Film Vibes needs a free account and its link is a best-guess match (it may not
+                land exactly for every title). IMDb's thrown in too, for quick cast/scene context while you browse.
               </p>
               <div className="tl-stills-filmrow">
                 <input
@@ -1452,6 +1454,9 @@ export default function App() {
                 </a>
                 <a className="tl-stills-link" href={`https://film-grab.com/?s=${encodeURIComponent(filmTitle)}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Film Grab ↗
+                </a>
+                <a className="tl-stills-link" href={`https://filmvibes.io/movies/${slugify(filmTitle)}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Film Vibes (free account needed) ↗
                 </a>
                 <a className="tl-stills-link" href={`https://www.imdb.com/find/?q=${encodeURIComponent(filmTitle)}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> IMDb ↗
