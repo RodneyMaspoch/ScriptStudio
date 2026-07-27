@@ -142,7 +142,7 @@ const DEFAULT_STATE = {
   data: {},
   reviewInput: "",
   boardQuery: "",
-  filters: { size: "Any", angle: "Any", mood: "Any" },
+  filters: { size: "Any", angle: "Any", type: "Any", mood: "Any" },
   developView: "write",
   overview: "",
   targetLength: "short",
@@ -377,6 +377,7 @@ export default function App() {
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardResults, setBoardResults] = useState([]);
   const [boardError, setBoardError] = useState("");
+  const [filmTitle, setFilmTitle] = useState("");
 
   const [justSaved, setJustSaved] = useState(false);
   const saveFlashTimeout = useRef(null);
@@ -392,7 +393,7 @@ export default function App() {
       const first = sorted[0];
       if (first) {
         const data = await loadProjectData(first.id);
-        setState((s) => ({ ...s, ...(data || {}), boardQuery: "", filters: { size: "Any", angle: "Any", mood: "Any" } }));
+        setState((s) => ({ ...s, ...(data || {}), boardQuery: "", filters: { size: "Any", angle: "Any", type: "Any", mood: "Any" } }));
         setActiveProjectId(first.id);
       }
       setHydrated(true);
@@ -432,7 +433,7 @@ export default function App() {
   const switchProject = async (id) => {
     if (id === activeProjectId) { setLibraryOpen(false); return; }
     const data = await loadProjectData(id);
-    setState({ ...DEFAULT_STATE, ...(data || {}), boardQuery: "", filters: { size: "Any", angle: "Any", mood: "Any" } });
+    setState({ ...DEFAULT_STATE, ...(data || {}), boardQuery: "", filters: { size: "Any", angle: "Any", type: "Any", mood: "Any" } });
     setActiveProjectId(id);
     resetEphemeralUI();
     setLibraryOpen(false);
@@ -558,16 +559,29 @@ export default function App() {
     if (!q) return;
     const n = Math.max(3, Math.min(9, state.settings.referenceCount || 6));
     const f = state.filters;
-    const extraTerms = [f.size, f.angle, f.mood].filter((v) => v && v !== "Any").join(" ");
-    const fullQuery = extraTerms ? `${q} ${extraTerms}` : q;
+    // Openverse's index is general CC photography, not cinematography-tagged \u2014
+    // shot-size/angle/type jargon (e.g. "high angle", "over-the-shoulder") rarely
+    // appears in real photo captions and tends to zero out results. Mood words
+    // (golden hour, noir, neon) are much more likely to genuinely appear, so only
+    // those get folded into the query; the rest stay as pure UI/intent for you.
+    const moodTerm = f.mood && f.mood !== "Any" ? f.mood : "";
+    const fullQuery = moodTerm ? `${q} ${moodTerm}` : q;
     setBoardLoading(true);
     setBoardError("");
     setBoardResults([]);
     try {
-      const res = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(fullQuery)}&page_size=${n}`);
+      let res = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(fullQuery)}&page_size=${n}`);
       if (!res.ok) throw new Error("Search request failed.");
-      const data = await res.json();
-      const results = data.results || [];
+      let data = await res.json();
+      let results = data.results || [];
+      if (!results.length && moodTerm) {
+        // Retry with just the plain description if the mood-augmented query missed.
+        res = await fetch(`https://api.openverse.org/v1/images/?q=${encodeURIComponent(q)}&page_size=${n}`);
+        if (res.ok) {
+          data = await res.json();
+          results = data.results || [];
+        }
+      }
       if (results.length) setBoardResults(results);
       else setBoardError("No reference images matched \u2014 try simpler, more visual terms.");
     } catch (e) {
@@ -790,8 +804,9 @@ export default function App() {
     label: o, active: state.filters[group] === o,
     onClick: () => patch((s) => ({ filters: { ...s.filters, [group]: s.filters[group] === o ? "Any" : o } })),
   }));
-  const sizeChips = mkChips("size", ["Any", "Wide", "Medium wide", "Medium", "Close-up", "Extreme close-up", "Over-the-shoulder"]);
-  const angleChips = mkChips("angle", ["Any", "Eye level", "Low angle", "High angle", "Dutch", "Overhead", "POV"]);
+  const sizeChips = mkChips("size", ["Any", "Wide", "Medium wide", "Medium", "Close-up", "Extreme close-up"]);
+  const angleChips = mkChips("angle", ["Any", "Eye level", "Low angle", "High angle", "Dutch", "Overhead"]);
+  const typeChips = mkChips("type", ["Any", "Over-the-shoulder", "POV", "Two-shot", "Insert", "Establishing"]);
   const moodChips = mkChips("mood", ["Any", "Noir", "Golden hour", "High-key", "Low-key", "Neon", "Naturalistic"]);
 
   const examples = [
@@ -1039,6 +1054,13 @@ export default function App() {
         .tl-stills-links { display: flex; flex-wrap: wrap; gap: 8px; }
         .tl-stills-link { display: inline-flex; align-items: center; gap: 6px; background: #1A1A1D; border: 1px solid #26262B; border-radius: 8px; padding: 7px 12px; font-size: 12.5px; color: #C9C9CE; text-decoration: none; }
         .tl-stills-link:hover { border-color: rgba(255,230,0,.4); color: #fff; }
+        .tl-stills-divider { height: 1px; background: #1E1E22; margin: 16px 0; }
+        .tl-stills-filmrow { margin-bottom: 10px; }
+        .tl-stills-film-input {
+          width: 100%; max-width: 360px; background: #0E0E10; border: 1px solid #2A2A30; border-radius: 8px;
+          color: #FAFAF9; font-family: 'Inter', sans-serif; font-size: 13px; padding: 8px 11px; outline: none;
+        }
+        .tl-stills-film-input:focus { border-color: #FFE600; box-shadow: 0 0 0 3px rgba(255,230,0,.14); }
         .tl-filter-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
         .tl-filter-label { font-size: 13px; color: #5E5E66; width: 66px; flex: none; }
         .tl-filter-chip { border-radius: 8px; padding: 6px 11px; font-size: 12.5px; background: #141416; border: 1px solid #26262B; color: #9C9CA4; }
@@ -1381,6 +1403,7 @@ export default function App() {
               <div style={{ display: "flex", flexDirection: "column", gap: 9, marginTop: 14 }}>
                 <div className="tl-filter-row"><span className="tl-filter-label">Shot size</span>{sizeChips.map((c, ci) => <button key={ci} className={`tl-filter-chip ${c.active ? "active" : ""}`} onClick={c.onClick}>{c.label}</button>)}</div>
                 <div className="tl-filter-row"><span className="tl-filter-label">Angle</span>{angleChips.map((c, ci) => <button key={ci} className={`tl-filter-chip ${c.active ? "active" : ""}`} onClick={c.onClick}>{c.label}</button>)}</div>
+                <div className="tl-filter-row"><span className="tl-filter-label">Shot type</span>{typeChips.map((c, ci) => <button key={ci} className={`tl-filter-chip ${c.active ? "active" : ""}`} onClick={c.onClick}>{c.label}</button>)}</div>
                 <div className="tl-filter-row"><span className="tl-filter-label">Mood</span>{moodChips.map((c, ci) => <button key={ci} className={`tl-filter-chip ${c.active ? "active" : ""}`} onClick={c.onClick}>{c.label}</button>)}</div>
               </div>
               <div className="tl-board-footer">
@@ -1393,21 +1416,45 @@ export default function App() {
               <div className="tl-stills-title">Looking for actual movie stills?</div>
               <p className="tl-stills-copy">
                 I can't reproduce or embed real film frames here — that's real studio-owned footage, not something a free tool can legally serve.
-                Google Images below opens pre-filled with your shot description. The other three are real, free stills databases people actually use for this —
-                none of them expose a way to pre-fill a search, so you'll paste your description in once you're there.
+                Google Images and Film Grab open pre-filled with your shot description above. Shot.cafe doesn't expose a way to pre-fill a search,
+                so you'll paste your description in once you're there.
               </p>
               <div className="tl-stills-links">
                 <a className="tl-stills-link" href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Google Images (pre-filled) ↗
                 </a>
+                <a className="tl-stills-link" href={`https://film-grab.com/?s=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Film Grab (pre-filled) ↗
+                </a>
                 <a className="tl-stills-link" href="https://shot.cafe/" target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Shot.cafe (free, tagged stills) ↗
                 </a>
-                <a className="tl-stills-link" href="https://www.moviestillsdb.com/search" target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> MovieStillsDB (free, editorial stills) ↗
+              </div>
+
+              <div className="tl-stills-divider" />
+
+              <div className="tl-stills-title">Already know which film you want stills from?</div>
+              <p className="tl-stills-copy">
+                MovieStillsDB and Film Grab are both organized by film, not by shot description — useless above if you already know the title,
+                genuinely useful once you type it here. IMDb's thrown in too, for quick cast/scene context while you browse.
+              </p>
+              <div className="tl-stills-filmrow">
+                <input
+                  className="tl-stills-film-input"
+                  placeholder='Type a film title, e.g. "Blade Runner 2049"'
+                  value={filmTitle}
+                  onChange={(e) => setFilmTitle(e.target.value)}
+                />
+              </div>
+              <div className="tl-stills-links">
+                <a className="tl-stills-link" href={`https://www.moviestillsdb.com/search/${encodeURIComponent(filmTitle)}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> MovieStillsDB ↗
                 </a>
-                <a className="tl-stills-link" href="https://film-grab.com/" target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> Film Grab (browse by film) ↗
+                <a className="tl-stills-link" href={`https://film-grab.com/?s=${encodeURIComponent(filmTitle)}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Film Grab ↗
+                </a>
+                <a className="tl-stills-link" href={`https://www.imdb.com/find/?q=${encodeURIComponent(filmTitle)}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> IMDb ↗
                 </a>
               </div>
             </div>
