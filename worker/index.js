@@ -1,38 +1,45 @@
 /**
- * Script Studio AI proxy — Cloudflare Worker, Gemini backend.
+ * Script Studio AI proxy — Cloudflare Worker, Gemini + YouTube backend.
  *
  * WHY THIS EXISTS
- * The browser can never hold your Gemini API key (anyone can open dev tools
- * and steal it). This Worker holds the key server-side and is the only thing
- * that talks to Google. Your frontend talks to this Worker instead.
+ * The browser can never hold API keys (anyone can open dev tools and steal
+ * them). This Worker holds them server-side and is the only thing that talks
+ * to Google. Your frontend talks to this Worker instead.
+ *
+ * TWO JOBS, ONE WORKER
+ * - POST { system, messages }   \u2192 Gemini text generation (Poke holes, Review, etc.)
+ * - POST { videoSearch: "..." } \u2192 YouTube Data API: finds the real trailer video ID
+ *   for a title, so the app can embed an actual inline YouTube player instead
+ *   of guessing at hardcoded video IDs that could be wrong or go stale.
  *
  * SETUP
  * 1. Install Wrangler:              npm install -g wrangler
  * 2. Create the Worker:             wrangler init scriptstudio-ai-proxy
  *    (choose "Hello World" template, then replace src/index.js with this file)
  * 3. Get a free Gemini API key:     https://aistudio.google.com/apikey
- * 4. Store it as a secret (never in code, never committed):
+ * 4. Enable the YouTube Data API v3 on the same Google Cloud project, then
+ *    create a second API key (or reuse one) restricted to that API:
+ *      https://console.cloud.google.com/apis/library/youtube.googleapis.com
+ * 5. Store both as secrets (never in code, never committed):
  *      wrangler secret put GEMINI_API_KEY
- * 5. Deploy:                        wrangler deploy
- * 6. You'll get a URL like https://scriptstudio-ai-proxy.YOUR-SUBDOMAIN.workers.dev
+ *      wrangler secret put YOUTUBE_API_KEY
+ * 6. Deploy:                        wrangler deploy
+ * 7. You'll get a URL like https://scriptstudio-ai-proxy.YOUR-SUBDOMAIN.workers.dev
  *
  * FRONTEND CHANGE
- * In App.jsx, replace the callClaude() function's fetch target and
- * body with a call to this Worker's URL, POSTing { system, messages } exactly
- * as it already does — this Worker accepts that same shape, so the rest of
- * the app (askBeat, runReview, runSearch) needs zero other changes.
+ * In App.jsx, callClaude() posts { system, messages } exactly as before \u2014
+ * no change needed there. A new fetchTrailerId() function posts
+ * { videoSearch } to this same URL and reads back { videoId }.
  *
- *   const response = await fetch("https://scriptstudio-ai-proxy.YOUR-SUBDOMAIN.workers.dev", {
- *     method: "POST",
- *     headers: { "Content-Type": "application/json" },
- *     body: JSON.stringify({ system, messages }),
- *   });
- *   const data = await response.json();
- *   return data.text;
+ * FREE TIER NOTE
+ * YouTube Data API v3 gives 10,000 free quota units/day; a search.list call
+ * costs 100 units, so about 100 trailer lookups/day before you'd hit a quota
+ * error \u2014 plenty for personal use.
  */
 
-const GEMINI_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_MODEL = "gemini-2.5-flash"; // swap to "gemini-2.5-flash-lite" for even higher free rate limits
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+const YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
 
 // Lock this down to your real deployed frontend origin before going live.
 const ALLOWED_ORIGIN = "*";
@@ -59,6 +66,31 @@ export default {
       return new Response(JSON.stringify({ error: "Invalid JSON body." }), { status: 400, headers: { ...cors, "Content-Type": "application/json" } });
     }
 
+    // --- Job 2: YouTube trailer lookup ---
+    if (typeof payload.videoSearch === "string") {
+      try {
+        const params = new URLSearchParams({
+          part: "snippet",
+          type: "video",
+          maxResults: "1",
+          q: payload.videoSearch,
+          key: env.YOUTUBE_API_KEY,
+        });
+        const res = await fetch(`${YOUTUBE_SEARCH_URL}?${params.toString()}`);
+        if (!res.ok) {
+          const errText = await res.text();
+          return new Response(JSON.stringify({ error: "YouTube search failed.", detail: errText }), { status: 502, headers: { ...cors, "Content-Type": "application/json" } });
+        }
+        const data = await res.json();
+        const videoId = data.items?.[0]?.id?.videoId || null;
+        if (!videoId) return new Response(JSON.stringify({ error: "No video found." }), { status: 404, headers: { ...cors, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ videoId }), { headers: { ...cors, "Content-Type": "application/json" } });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: "Something went wrong calling YouTube.", detail: String(e) }), { status: 500, headers: { ...cors, "Content-Type": "application/json" } });
+      }
+    }
+
+    // --- Job 1: Gemini text generation ---
     const { system, messages } = payload;
     const userText = Array.isArray(messages) && messages[0] ? String(messages[0].content || "") : "";
 
@@ -88,6 +120,3 @@ export default {
     }
   },
 };
-
-
-/* Trigger deployment */
