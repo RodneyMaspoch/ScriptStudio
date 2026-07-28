@@ -14,6 +14,11 @@ const FRAMEWORKS = [
       { title: "Monsters, Inc.", year: 2001, note: "Comfort zone disrupted by a single accidental need." },
       { title: "Zootopia", year: 2016, note: "Clear want, unfamiliar city, real cost, genuine change." },
       { title: "Harry Potter and the Sorcerer's Stone", year: 2001, note: "Ordinary cupboard life to Hogwarts and back, changed." },
+    ],
+    shortExamples: [
+      { title: "Piper", year: 2016, note: "Pixar short: comfort on the shore \u2192 forced out to feed \u2192 real cost \u2192 changed by the tide." },
+      { title: "Float", year: 2019, note: "Pixar SparkShorts: a comfortable secret forced into the open, a real change in how it's held." },
+      { title: "Bao", year: 2018, note: "Comfortable empty nest \u2192 a \"child\" who leaves \u2192 loss \u2192 genuine reconciliation." },
     ] },
   { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation", fits: ["long_short", "feature"],
     examples: [
@@ -24,6 +29,11 @@ const FRAMEWORKS = [
       { title: "The Hobbit: An Unexpected Journey", year: 2012, note: "A reluctant hero dragged across the threshold by his mentor." },
       { title: "Moana", year: 2016, note: "Clear call, refusal, ocean as mentor, a real ordeal with Te K\u0101." },
       { title: "The Fellowship of the Ring", year: 2001, note: "Shire to Rivendell to Moria \u2014 stage by stage, almost by the book." },
+    ],
+    shortExamples: [
+      { title: "The Present", year: 2014, note: "A reluctant boy, a call he refuses, an ordeal that changes him \u2014 compressed to a few minutes." },
+      { title: "Lava", year: 2014, note: "Pixar short: a small, complete longing-and-quest shape in song form." },
+      { title: "Alike", year: 2015, note: "A quiet call to individuality against an ordinary, gray world." },
     ] },
   { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting", fits: ["feature", "long_short"],
     examples: [
@@ -34,6 +44,11 @@ const FRAMEWORKS = [
       { title: "The Devil Wears Prada", year: 2006, note: "Textbook fun-and-games section \u2014 the makeover montage beat." },
       { title: "Erin Brockovich", year: 2000, note: "Cited often for its clean debate-to-break-into-two turn." },
       { title: "Iron Man", year: 2008, note: "Origin story mapped almost exactly onto the 15 beats." },
+    ],
+    shortExamples: [
+      { title: "Two Cars, One Night", year: 2003, note: "Taika Waititi's Oscar-nominated short \u2014 tight, economical turns for its length." },
+      { title: "Curfew", year: 2012, note: "Oscar winner; a clean setup-to-midpoint-to-resolution shape worth studying for pacing." },
+      { title: "The Neighbors' Window", year: 2019, note: "Oscar winner built almost entirely around one sharp midpoint turn." },
     ] },
   { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts", fits: ["micro", "short", "long_short", "feature"],
     examples: [
@@ -44,6 +59,11 @@ const FRAMEWORKS = [
       { title: "Alien", year: 1979, note: "Setup on the Nostromo, confrontation with the creature, survival." },
       { title: "Toy Story", year: 1995, note: "Rivalry setup, lost-together confrontation, resolution home." },
       { title: "The Godfather", year: 1972, note: "Epic in scale but structurally a clean three-act shape." },
+    ],
+    shortExamples: [
+      { title: "World of Tomorrow", year: 2015, note: "Don Hertzfeldt \u2014 a complete, bizarre three-act shape in 16 minutes." },
+      { title: "Validation", year: 2007, note: "Setup, a complication that flips the premise, a clean resolution." },
+      { title: "The Black Hole", year: 2008, note: "Tight, near-wordless setup/complication/resolution in about 3 minutes." },
     ] },
   { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts", fits: ["long_short", "feature"],
     examples: [
@@ -54,6 +74,10 @@ const FRAMEWORKS = [
       { title: "Thelma & Louise", year: 1991, note: "Each stop on the road reads as its own complete mini-movie." },
       { title: "Lethal Weapon", year: 1987, note: "Escalating sequences, each with a clear turn of its own." },
       { title: "Mission: Impossible", year: 1996, note: "Heist-style sequencing, each job a self-contained unit." },
+    ],
+    shortExamples: [
+      { title: "Curfew", year: 2012, note: "Reads as several small self-contained movements stitched into one short." },
+      { title: "Validation", year: 2007, note: "Each interaction at the parking booth functions like its own mini-sequence." },
     ] },
   { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces", fits: ["micro", "short", "long_short", "feature"],
     examples: [
@@ -64,6 +88,10 @@ const FRAMEWORKS = [
       { title: "Only Yesterday", year: 1991, note: "Takahata \u2014 memory and present day sit side by side, no conflict engine." },
       { title: "Departures", year: 2008, note: "A quiet reframing of a taboo job, not a confrontation, carries it." },
       { title: "Paterson", year: 2016, note: "Western mood-piece often cited alongside this structure." },
+    ],
+    shortExamples: [
+      { title: "La Luna", year: 2011, note: "Pixar short: a gentle family-tradition twist, no antagonist anywhere." },
+      { title: "Sanjay's Super Team", year: 2015, note: "A quiet reframing of two worldviews rather than a conflict to defeat." },
     ] },
 ];
 
@@ -897,9 +925,23 @@ export default function App() {
     }
     return copy.slice(0, n);
   };
+  const lengthCategory = (targetLength) => {
+    if (["micro", "short", "long_short"].includes(targetLength)) return "short";
+    if (targetLength === "feature") return "feature";
+    return "mixed";
+  };
+  const examplePool = (frameworkObj, targetLength) => {
+    if (!frameworkObj) return [];
+    const cat = lengthCategory(targetLength);
+    const shorts = frameworkObj.shortExamples || [];
+    if (cat === "short") return shorts.length ? shorts : frameworkObj.examples;
+    if (cat === "feature") return frameworkObj.examples;
+    return [...shorts, ...frameworkObj.examples];
+  };
+  const inspirationKey = (frameworkKey, targetLength) => `${frameworkKey}:${lengthCategory(targetLength)}`;
   const refreshInspiration = (frameworkKey) => {
-    const all = FRAMEWORKS.find((x) => x.key === frameworkKey)?.examples || [];
-    setShownExamples((s) => ({ ...s, [frameworkKey]: pickRandom(all, 3) }));
+    const pool = examplePool(FRAMEWORKS.find((x) => x.key === frameworkKey), state.targetLength);
+    setShownExamples((s) => ({ ...s, [inspirationKey(frameworkKey, state.targetLength)]: pickRandom(pool, 3) }));
   };
 
   const playTrailer = async (title, year) => {
@@ -913,9 +955,9 @@ export default function App() {
     }
   };
   useEffect(() => {
-    if (fw && !shownExamples[fw]) refreshInspiration(fw);
+    if (fw && !shownExamples[inspirationKey(fw, state.targetLength)]) refreshInspiration(fw);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fw]);
+  }, [fw, state.targetLength]);
 
   const renderLengthPicker = () => (
     <div className="tl-length-row">
@@ -1033,12 +1075,12 @@ export default function App() {
         .tl-inspiration-title { font-size: 13.5px; font-weight: 600; color: #FAFAF9; }
         .tl-inspiration-year { font-size: 12px; color: #6C6C74; }
         .tl-inspiration-note { font-size: 12.5px; color: #9C9CA4; line-height: 1.45; margin-bottom: 10px; }
-        .tl-inspiration-links { display: flex; gap: 14px; }
-        .tl-inspiration-links a { font-size: 12px; font-weight: 600; color: #FFE600; text-decoration: none; }
-        .tl-inspiration-links a:hover { text-decoration: underline; }
-        .tl-trailer-btn { background: none; border: 1px solid #2A2A30; color: #FFE600; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; }
+        .tl-inspiration-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .tl-inspiration-links a { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: #FFE600; text-decoration: none; border: 1px solid #2A2A30; border-radius: 7px; padding: 5px 10px; line-height: 1.2; }
+        .tl-inspiration-links a:hover { background: rgba(255,230,0,.1); border-color: #FFE600; text-decoration: none; }
+        .tl-trailer-btn { display: inline-flex; align-items: center; background: none; border: 1px solid #2A2A30; color: #FFE600; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; line-height: 1.2; }
         .tl-trailer-btn:hover { background: rgba(255,230,0,.1); border-color: #FFE600; }
-        .tl-trailer-loading { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #9C9CA4; }
+        .tl-trailer-loading { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #9C9CA4; padding: 5px 0; }
         .tl-trailer-frame { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: #000; }
         .tl-trailer-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
         .tl-overview-label { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
@@ -1321,11 +1363,13 @@ export default function App() {
 
                     <div className="tl-inspiration-card">
                       <div className="tl-inspiration-head">
-                        <div className="tl-inspiration-label">Inspiration — films/shows that use this structure</div>
+                        <div className="tl-inspiration-label">
+                          Inspiration — {lengthCategory(state.targetLength) === "short" ? "short films" : lengthCategory(state.targetLength) === "feature" ? "feature films" : "shorts & features"} that use this structure
+                        </div>
                         <button className="tl-refresh-btn" onClick={() => refreshInspiration(fw)}>↻ Refresh</button>
                       </div>
                       <div className="tl-inspiration-list">
-                        {(shownExamples[fw] || []).map((ex, exi) => {
+                        {(shownExamples[inspirationKey(fw, state.targetLength)] || []).map((ex, exi) => {
                           const tKey = `${ex.title}-${ex.year}`;
                           const t = trailers[tKey] || { status: "idle" };
                           return (
