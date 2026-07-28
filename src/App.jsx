@@ -591,8 +591,6 @@ export default function App() {
     }
   };
 
-  const useExample = (t) => { patch({ boardQuery: t }); runSearch(t); };
-
   /* ---------------- Screenplay editor ---------------- */
 
   const blocks = state.script && state.script.length ? state.script : [{ type: "scene", text: "" }, { type: "action", text: "" }];
@@ -809,13 +807,6 @@ export default function App() {
   const angleChips = mkChips("angle", ["Any", "Eye level", "Low angle", "High angle", "Dutch", "Overhead"]);
   const typeChips = mkChips("type", ["Any", "Over-the-shoulder", "POV", "Two-shot", "Insert", "Establishing"]);
   const moodChips = mkChips("mood", ["Any", "Noir", "Golden hour", "High-key", "Low-key", "Neon", "Naturalistic"]);
-
-  const examples = [
-    "Woman sitting on a couch, over-the-shoulder medium-wide shot of her watching TV in a dark room",
-    "Lone figure walking away down an empty highway at golden hour, extreme wide shot",
-    "Tense two-hander across a diner table, tight eye-level singles, warm practical light",
-    "Low-angle hero shot of a character stepping through a doorway into blinding light",
-  ];
 
   const coachOptions = [
     { label: "Gentle nudges", desc: "One kind nudge on the weakest point." },
@@ -1420,14 +1411,14 @@ export default function App() {
                 so you'll paste your description in once you're there.
               </p>
               <div className="tl-stills-links">
+                <a className="tl-stills-link" href={`https://frameset.app/search?search=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Frameset (pre-filled, best search) ↗
+                </a>
                 <a className="tl-stills-link" href={`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Google Images (pre-filled) ↗
                 </a>
                 <a className="tl-stills-link" href={`https://film-grab.com/?s=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Film Grab (pre-filled) ↗
-                </a>
-                <a className="tl-stills-link" href={`https://frameset.app/search?search=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> Frameset (pre-filled) ↗
                 </a>
                 <a className="tl-stills-link" href="https://shot.cafe/" target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Shot.cafe (free, tagged stills) ↗
@@ -1465,13 +1456,6 @@ export default function App() {
                 </a>
               </div>
             </div>
-
-            {!boardLoading && boardResults.length === 0 && !boardError && (
-              <div style={{ marginTop: 24 }}>
-                <div style={{ fontSize: 12, color: "#5E5E66", marginBottom: 11 }}>Try one of these</div>
-                <div className="tl-examples">{examples.map((ex, ei) => <button key={ei} className="tl-example-btn" onClick={() => useExample(ex)}>{ex}</button>)}</div>
-              </div>
-            )}
 
             {boardLoading && (
               <div className="tl-skeleton-grid" style={{ marginTop: 26 }}>
