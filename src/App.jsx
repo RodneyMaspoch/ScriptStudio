@@ -1407,8 +1407,8 @@ export default function App() {
               <div className="tl-stills-title">Looking for actual movie stills?</div>
               <p className="tl-stills-copy">
                 I can't reproduce or embed real film frames here — that's real studio-owned footage, not something a free tool can legally serve.
-                Google Images, Film Grab, and Frameset all open pre-filled with your shot description above. Shot.cafe doesn't expose a way to pre-fill a search,
-                so you'll paste your description in once you're there.
+                Frameset, Google Images, and Film Grab all open pre-filled with your shot description above. Shot.cafe has no text search at all —
+                it's browse-only by tag, genre, director, or year — so it won't reflect what you typed; it's there for open-ended browsing instead.
               </p>
               <div className="tl-stills-links">
                 <a className="tl-stills-link" href={`https://frameset.app/search?search=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
@@ -1420,8 +1420,8 @@ export default function App() {
                 <a className="tl-stills-link" href={`https://film-grab.com/?s=${encodeURIComponent(state.boardQuery || "")}`} target="_blank" rel="noopener noreferrer">
                   <IconSearch size={13} /> Film Grab (pre-filled) ↗
                 </a>
-                <a className="tl-stills-link" href="https://shot.cafe/" target="_blank" rel="noopener noreferrer">
-                  <IconSearch size={13} /> Shot.cafe (free, tagged stills) ↗
+                <a className="tl-stills-link" href="https://shot.cafe/tags/" target="_blank" rel="noopener noreferrer">
+                  <IconSearch size={13} /> Shot.cafe (browse tags, no search) ↗
                 </a>
               </div>
 
