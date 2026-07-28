@@ -5,12 +5,66 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
    ====================================================================== */
 
 const FRAMEWORKS = [
-  { key: "clock", name: "Story Clock", count: 8, unit: "beats", blurb: "The story circle — comfort, desire, descent, return. Lean and rhythmic.", best: "Best for shorts", fits: ["micro", "short", "long_short"] },
-  { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation", fits: ["long_short", "feature"] },
-  { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting", fits: ["feature", "long_short"] },
-  { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts", fits: ["micro", "short", "long_short", "feature"] },
-  { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts", fits: ["long_short", "feature"] },
-  { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces", fits: ["micro", "short", "long_short", "feature"] },
+  { key: "clock", name: "Story Clock", count: 8, unit: "beats", blurb: "The story circle — comfort, desire, descent, return. Lean and rhythmic.", best: "Best for shorts", fits: ["micro", "short", "long_short"],
+    examples: [
+      { title: "Finding Nemo", year: 2003, note: "A textbook case: comfort \u2192 loss \u2192 an unfamiliar ocean \u2192 change." },
+      { title: "Community", year: 2009, note: "Dan Harmon's own show \u2014 he built this circle to write it." },
+      { title: "Rick and Morty", year: 2013, note: "Also Harmon's \u2014 nearly every episode runs the circle solo." },
+      { title: "The Wizard of Oz", year: 1939, note: "Leaves home, unfamiliar world, pays a price, returns changed." },
+      { title: "Monsters, Inc.", year: 2001, note: "Comfort zone disrupted by a single accidental need." },
+      { title: "Zootopia", year: 2016, note: "Clear want, unfamiliar city, real cost, genuine change." },
+      { title: "Harry Potter and the Sorcerer's Stone", year: 2001, note: "Ordinary cupboard life to Hogwarts and back, changed." },
+    ] },
+  { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation", fits: ["long_short", "feature"],
+    examples: [
+      { title: "Star Wars: A New Hope", year: 1977, note: "The example Campbell and Vogler themselves point to." },
+      { title: "The Lion King", year: 1994, note: "Exile, mentor, ordeal, and a literal return to claim the throne." },
+      { title: "The Matrix", year: 1999, note: "Refusal, the red pill threshold, death and rebirth as Neo." },
+      { title: "Harry Potter and the Sorcerer's Stone", year: 2001, note: "Mentor in Hagrid, threshold at Platform 9\u00be, ordeal with Quirrell." },
+      { title: "The Hobbit: An Unexpected Journey", year: 2012, note: "A reluctant hero dragged across the threshold by his mentor." },
+      { title: "Moana", year: 2016, note: "Clear call, refusal, ocean as mentor, a real ordeal with Te K\u0101." },
+      { title: "The Fellowship of the Ring", year: 2001, note: "Shire to Rivendell to Moria \u2014 stage by stage, almost by the book." },
+    ] },
+  { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting", fits: ["feature", "long_short"],
+    examples: [
+      { title: "Legally Blonde", year: 2001, note: "Blake Snyder's own case study in the book, beat for beat." },
+      { title: "Miss Congeniality", year: 2000, note: "Clean midpoint pivot from mockery to genuine transformation." },
+      { title: "The Hunger Games", year: 2012, note: "Sharp catalyst and an unmistakable break into act two." },
+      { title: "Little Miss Sunshine", year: 2006, note: "A frequently cited example for its tight, honest beat structure." },
+      { title: "The Devil Wears Prada", year: 2006, note: "Textbook fun-and-games section \u2014 the makeover montage beat." },
+      { title: "Erin Brockovich", year: 2000, note: "Cited often for its clean debate-to-break-into-two turn." },
+      { title: "Iron Man", year: 2008, note: "Origin story mapped almost exactly onto the 15 beats." },
+    ] },
+  { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts", fits: ["micro", "short", "long_short", "feature"],
+    examples: [
+      { title: "Jaws", year: 1975, note: "About as clean a three-act spine as exists in mainstream film." },
+      { title: "Die Hard", year: 1988, note: "Setup on the plane, confrontation in the tower, resolution at the end." },
+      { title: "Rocky", year: 1976, note: "Ordinary life, the fight is set, the fight itself \u2014 nothing fancier." },
+      { title: "Casablanca", year: 1942, note: "A classic-Hollywood-clean three-act reference." },
+      { title: "Alien", year: 1979, note: "Setup on the Nostromo, confrontation with the creature, survival." },
+      { title: "Toy Story", year: 1995, note: "Rivalry setup, lost-together confrontation, resolution home." },
+      { title: "The Godfather", year: 1972, note: "Epic in scale but structurally a clean three-act shape." },
+    ] },
+  { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts", fits: ["long_short", "feature"],
+    examples: [
+      { title: "Speed", year: 1994, note: "Built almost entirely from self-contained, ticking-clock sequences." },
+      { title: "The Fugitive", year: 1993, note: "Classic reference for sequence-driven studio screenwriting." },
+      { title: "Die Hard", year: 1988, note: "Also holds up read as eight mini-movies, not just three acts." },
+      { title: "Raiders of the Lost Ark", year: 1981, note: "The film Frank Daniel himself used to teach this method." },
+      { title: "Thelma & Louise", year: 1991, note: "Each stop on the road reads as its own complete mini-movie." },
+      { title: "Lethal Weapon", year: 1987, note: "Escalating sequences, each with a clear turn of its own." },
+      { title: "Mission: Impossible", year: 1996, note: "Heist-style sequencing, each job a self-contained unit." },
+    ] },
+  { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces", fits: ["micro", "short", "long_short", "feature"],
+    examples: [
+      { title: "Spirited Away", year: 2001, note: "Movement through a strange world, not conflict, drives it." },
+      { title: "My Neighbor Totoro", year: 1988, note: "Almost no antagonist at all \u2014 pure ki-sho-ten-ketsu." },
+      { title: "Tokyo Story", year: 1953, note: "Ozu \u2014 the classic reference point for this structure." },
+      { title: "Kiki's Delivery Service", year: 1989, note: "A gentle turn (losing her powers), not a villain, reframes everything." },
+      { title: "Only Yesterday", year: 1991, note: "Takahata \u2014 memory and present day sit side by side, no conflict engine." },
+      { title: "Departures", year: 2008, note: "A quiet reframing of a taboo job, not a confrontation, carries it." },
+      { title: "Paterson", year: 2016, note: "Western mood-piece often cited alongside this structure." },
+    ] },
 ];
 
 function defsFor(fw) {
@@ -378,6 +432,7 @@ export default function App() {
   const [boardLoading, setBoardLoading] = useState(false);
   const [boardResults, setBoardResults] = useState([]);
   const [boardError, setBoardError] = useState("");
+  const [shownExamples, setShownExamples] = useState({});
   const [filmTitle, setFilmTitle] = useState("");
 
   const [justSaved, setJustSaved] = useState(false);
@@ -815,6 +870,26 @@ export default function App() {
     { label: "Blunt script-doctor", desc: "Direct, unsparing notes." },
   ];
 
+  const watchSearchUrl = (title, year) => `https://www.google.com/search?q=${encodeURIComponent(`${title} ${year} where to watch`)}`;
+  const scriptSearchUrl = (title) => `https://www.google.com/search?q=${encodeURIComponent(`"${title}" script pdf`)}+site:imsdb.com+OR+site:scriptslug.com+OR+site:simplyscripts.com`;
+
+  const pickRandom = (arr, n) => {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
+  };
+  const refreshInspiration = (frameworkKey) => {
+    const all = FRAMEWORKS.find((x) => x.key === frameworkKey)?.examples || [];
+    setShownExamples((s) => ({ ...s, [frameworkKey]: pickRandom(all, 3) }));
+  };
+  useEffect(() => {
+    if (fw && !shownExamples[fw]) refreshInspiration(fw);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fw]);
+
   const renderLengthPicker = () => (
     <div className="tl-length-row">
       <span className="tl-length-label">Target length</span>
@@ -920,6 +995,20 @@ export default function App() {
         .tl-subtab:hover:not(.active) { color: #FAFAF9; }
 
         .tl-overview-card { background: #141416; border: 1px solid #26262B; border-radius: 14px; padding: 15px 18px; margin-bottom: 16px; }
+        .tl-inspiration-card { background: #141416; border: 1px solid #26262B; border-radius: 14px; padding: 15px 18px; margin-bottom: 16px; }
+        .tl-inspiration-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .tl-inspiration-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #6C6C74; font-weight: 600; }
+        .tl-refresh-btn { background: none; border: 1px solid #2A2A30; color: #9C9CA4; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; }
+        .tl-refresh-btn:hover { background: #1A1A1D; border-color: #FFE600; color: #FAFAF9; }
+        .tl-inspiration-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .tl-inspiration-item { background: #0E0E10; border: 1px solid #1E1E22; border-radius: 10px; padding: 12px 13px; }
+        .tl-inspiration-title-row { display: flex; align-items: baseline; gap: 7px; margin-bottom: 5px; }
+        .tl-inspiration-title { font-size: 13.5px; font-weight: 600; color: #FAFAF9; }
+        .tl-inspiration-year { font-size: 12px; color: #6C6C74; }
+        .tl-inspiration-note { font-size: 12.5px; color: #9C9CA4; line-height: 1.45; margin-bottom: 10px; }
+        .tl-inspiration-links { display: flex; gap: 14px; }
+        .tl-inspiration-links a { font-size: 12px; font-weight: 600; color: #FFE600; text-decoration: none; }
+        .tl-inspiration-links a:hover { text-decoration: underline; }
         .tl-overview-label { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
         .tl-overview-label span:first-of-type { font-size: 13px; font-weight: 600; color: #EDEDF0; }
         .tl-overview-label span:last-of-type { font-size: 13px; color: #9C9CA4; }
@@ -1196,6 +1285,28 @@ export default function App() {
                       </div>
                       <textarea className="tl-textarea" style={{ minHeight: 60 }} value={state.overview} onChange={(e) => patch({ overview: e.target.value })} placeholder="Logline / premise: who wants what, and what stands in the way? Note the genre, tone, and the ending if you know it." />
                       {renderLengthPicker()}
+                    </div>
+
+                    <div className="tl-inspiration-card">
+                      <div className="tl-inspiration-head">
+                        <div className="tl-inspiration-label">Inspiration — films/shows that use this structure</div>
+                        <button className="tl-refresh-btn" onClick={() => refreshInspiration(fw)}>↻ Refresh</button>
+                      </div>
+                      <div className="tl-inspiration-list">
+                        {(shownExamples[fw] || []).map((ex, exi) => (
+                          <div className="tl-inspiration-item" key={exi}>
+                            <div className="tl-inspiration-title-row">
+                              <span className="tl-inspiration-title">{ex.title}</span>
+                              <span className="tl-inspiration-year">{ex.year}</span>
+                            </div>
+                            <div className="tl-inspiration-note">{ex.note}</div>
+                            <div className="tl-inspiration-links">
+                              <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Watch ↗</a>
+                              <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="tl-viewtoggle">
