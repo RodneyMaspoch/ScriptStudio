@@ -110,6 +110,7 @@ const SEV_COLOR = { high: "#FF5A5A", medium: "#F5A623", low: "#8B8B93" };
 const CORK_ROTATIONS = [-1.6, 1.1, -0.6, 1.4, -1.1, 0.8, -1.3, 0.6, -0.9, 1.2, -0.5, 1.5];
 
 const LENGTH_OPTIONS = [
+  { key: "all", label: "All lengths", phrase: null, range: null },
   { key: "micro", label: "Micro (under 2 min)", phrase: "a micro short film (under 2 minutes)", range: [0, 2] },
   { key: "short", label: "Short (3\u201310 min)", phrase: "a short film (roughly 3\u201310 minutes)", range: [3, 10] },
   { key: "long_short", label: "Long short (10\u201320 min)", phrase: "a longer short film (roughly 10\u201320 minutes)", range: [10, 20] },
@@ -119,7 +120,7 @@ const LENGTH_OPTIONS = [
 
 function lengthPhrase(state) {
   const opt = LENGTH_OPTIONS.find((o) => o.key === state.targetLength);
-  if (!opt) return "a short film";
+  if (!opt || opt.key === "all") return "a short film";
   if (opt.key === "other") {
     const custom = (state.targetLengthCustom || "").trim();
     return custom ? `a film with a target length of "${custom}"` : "a film of unspecified length";
@@ -827,6 +828,9 @@ export default function App() {
   );
 
   const tRange = targetRange(state);
+  const visibleFrameworks = (state.targetLength === "all" || state.targetLength === "other")
+    ? FRAMEWORKS
+    : FRAMEWORKS.filter((f) => f.fits.includes(state.targetLength));
   const estMinutes = scriptPages; // ~1 screenplay page \u2248 1 minute of screen time
   const withinTarget = tRange ? estMinutes >= tRange[0] && estMinutes <= tRange[1] : null;
 
@@ -896,7 +900,7 @@ export default function App() {
         .tl-fw-top { display: flex; align-items: baseline; gap: 9px; margin-bottom: 12px; }
         .tl-fw-count { font-family: 'Space Grotesk', sans-serif; font-size: 30px; font-weight: 700; line-height: 1; color: #FFE600; }
         .tl-fw-unit { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: #6C6C74; font-weight: 600; }
-        .tl-fw-name { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.01em; }
+        .tl-fw-name { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.01em; color: #FAFAF9; }
         .tl-fw-blurb { margin: 0 0 12px; font-size: 13px; color: #C9C9CE; line-height: 1.5; flex: 1; }
         .tl-fw-best { font-size: 12px; color: #5E5E66; letter-spacing: .04em; }
 
@@ -1169,18 +1173,17 @@ export default function App() {
                     <p className="tl-body-copy">Pick a structure and I'll walk you through it beat by beat — asking questions, poking holes, and pushing you to strengthen each turn as you go.</p>
                     <div className="tl-fw-length-wrap">{renderLengthPicker()}</div>
                     <div className="tl-fw-grid">
-                      {FRAMEWORKS.map((f) => {
-                        const goodFit = f.fits.includes(state.targetLength);
-                        return (
-                          <button key={f.key} className="tl-fw-card" onClick={() => patch({ framework: f.key, developView: "write" })}>
-                            <div className="tl-fw-top"><span className="tl-fw-count">{f.count}</span><span className="tl-fw-unit">{f.unit}</span></div>
-                            <div className="tl-fw-name">{f.name}</div>
-                            <p className="tl-fw-blurb">{f.blurb}</p>
-                            <span className="tl-fw-best">{f.best}</span>
-                            {goodFit && <span className="tl-fw-fit-badge">✓ Fits your target length</span>}
-                          </button>
-                        );
-                      })}
+                      {visibleFrameworks.map((f) => (
+                        <button key={f.key} className="tl-fw-card" onClick={() => patch({ framework: f.key, developView: "write" })}>
+                          <div className="tl-fw-top"><span className="tl-fw-count">{f.count}</span><span className="tl-fw-unit">{f.unit}</span></div>
+                          <div className="tl-fw-name">{f.name}</div>
+                          <p className="tl-fw-blurb">{f.blurb}</p>
+                          <span className="tl-fw-best">{f.best}</span>
+                        </button>
+                      ))}
+                      {visibleFrameworks.length === 0 && (
+                        <div style={{ color: "#6C6C74", fontSize: 13 }}>No frameworks tagged for this length yet — try "All lengths" above.</div>
+                      )}
                     </div>
                   </div>
                 )}
