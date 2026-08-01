@@ -19,6 +19,9 @@ const FRAMEWORKS = [
       { title: "Piper", year: 2016, note: "Pixar short: comfort on the shore \u2192 forced out to feed \u2192 real cost \u2192 changed by the tide." },
       { title: "Float", year: 2019, note: "Pixar SparkShorts: a comfortable secret forced into the open, a real change in how it's held." },
       { title: "Bao", year: 2018, note: "Comfortable empty nest \u2192 a \"child\" who leaves \u2192 loss \u2192 genuine reconciliation." },
+      { title: "Purl", year: 2018, note: "Pixar SparkShorts: comfort at a new job, misfit need, adapts, returns changed." },
+      { title: "Presto", year: 2008, note: "A magician's routine disrupted by his own rabbit, escalating until he changes his ways." },
+      { title: "For the Birds", year: 2000, note: "A flock's comfort zone disrupted by an outsider \u2014 and a real cost paid for it." },
     ] },
   { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation", fits: ["long_short", "feature"],
     examples: [
@@ -34,6 +37,9 @@ const FRAMEWORKS = [
       { title: "The Present", year: 2014, note: "A reluctant boy, a call he refuses, an ordeal that changes him \u2014 compressed to a few minutes." },
       { title: "Lava", year: 2014, note: "Pixar short: a small, complete longing-and-quest shape in song form." },
       { title: "Alike", year: 2015, note: "A quiet call to individuality against an ordinary, gray world." },
+      { title: "The Dam Keeper", year: 2014, note: "Ordinary world, a threshold into real danger, an ordeal, a changed return." },
+      { title: "Feast", year: 2014, note: "A small call-and-reward shape told entirely through one dog's meals." },
+      { title: "Boundin'", year: 2003, note: "Loss of innocence, a mentor figure, and a genuine change in outlook." },
     ] },
   { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting", fits: ["feature", "long_short"],
     examples: [
@@ -49,6 +55,9 @@ const FRAMEWORKS = [
       { title: "Two Cars, One Night", year: 2003, note: "Taika Waititi's Oscar-nominated short \u2014 tight, economical turns for its length." },
       { title: "Curfew", year: 2012, note: "Oscar winner; a clean setup-to-midpoint-to-resolution shape worth studying for pacing." },
       { title: "The Neighbors' Window", year: 2019, note: "Oscar winner built almost entirely around one sharp midpoint turn." },
+      { title: "Six Shooter", year: 2004, note: "Martin McDonagh's Oscar winner \u2014 escalating beats packed into one train ride." },
+      { title: "Wasp", year: 2003, note: "Andrea Arnold's Oscar winner \u2014 a clean, uncomfortable midpoint reversal." },
+      { title: "Stutterer", year: 2015, note: "Oscar winner with a sharp catalyst and an unmistakable final-act turn." },
     ] },
   { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts", fits: ["micro", "short", "long_short", "feature"],
     examples: [
@@ -64,6 +73,9 @@ const FRAMEWORKS = [
       { title: "World of Tomorrow", year: 2015, note: "Don Hertzfeldt \u2014 a complete, bizarre three-act shape in 16 minutes." },
       { title: "Validation", year: 2007, note: "Setup, a complication that flips the premise, a clean resolution." },
       { title: "The Black Hole", year: 2008, note: "Tight, near-wordless setup/complication/resolution in about 3 minutes." },
+      { title: "Six Shooter", year: 2004, note: "A single train ride with a clean setup, confrontation, and resolution." },
+      { title: "Stutterer", year: 2015, note: "Compact and clean \u2014 setup, a real complication, an earned resolution." },
+      { title: "The Lunch Date", year: 1989, note: "Oscar winner \u2014 about as clean a three-act short as exists." },
     ] },
   { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts", fits: ["long_short", "feature"],
     examples: [
@@ -78,6 +90,9 @@ const FRAMEWORKS = [
     shortExamples: [
       { title: "Curfew", year: 2012, note: "Reads as several small self-contained movements stitched into one short." },
       { title: "Validation", year: 2007, note: "Each interaction at the parking booth functions like its own mini-sequence." },
+      { title: "The Lunch Date", year: 1989, note: "Each small exchange builds like its own tiny, complete sequence." },
+      { title: "Gopher Broke", year: 2004, note: "Escalating comedic sequences, each with its own setup and payoff." },
+      { title: "Six Shooter", year: 2004, note: "Distinct movements within a single train ride, each with its own turn." },
     ] },
   { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces", fits: ["micro", "short", "long_short", "feature"],
     examples: [
@@ -92,6 +107,9 @@ const FRAMEWORKS = [
     shortExamples: [
       { title: "La Luna", year: 2011, note: "Pixar short: a gentle family-tradition twist, no antagonist anywhere." },
       { title: "Sanjay's Super Team", year: 2015, note: "A quiet reframing of two worldviews rather than a conflict to defeat." },
+      { title: "Negative Space", year: 2017, note: "Oscar-nominated \u2014 a quiet reframing of memory, no villain in sight." },
+      { title: "In a Heartbeat", year: 2017, note: "A gentle emotional turn carries it, not a confrontation." },
+      { title: "Kitbull", year: 2019, note: "Pixar SparkShorts: trust builds through a turn, not through defeating anyone." },
     ] },
 ];
 
