@@ -477,6 +477,7 @@ export default function App() {
   const [boardError, setBoardError] = useState("");
   const [shownExamples, setShownExamples] = useState({});
   const [trailers, setTrailers] = useState({});
+  const [lightboxTrailer, setLightboxTrailer] = useState(null);
   const [filmTitle, setFilmTitle] = useState("");
 
   const [justSaved, setJustSaved] = useState(false);
@@ -946,10 +947,15 @@ export default function App() {
 
   const playTrailer = async (title, year) => {
     const key = `${title}-${year}`;
+    if (trailers[key]?.status === "ready") {
+      setLightboxTrailer({ videoId: trailers[key].videoId, title });
+      return;
+    }
     setTrailers((t) => ({ ...t, [key]: { status: "loading" } }));
     try {
       const videoId = await fetchTrailerId(`${title} ${year} official trailer`);
       setTrailers((t) => ({ ...t, [key]: { status: "ready", videoId } }));
+      setLightboxTrailer({ videoId, title });
     } catch (e) {
       setTrailers((t) => ({ ...t, [key]: { status: "error", errorMsg: e.message || "Couldn't find a trailer." } }));
     }
@@ -1081,8 +1087,14 @@ export default function App() {
         .tl-trailer-btn { display: inline-flex; align-items: center; background: none; border: 1px solid #2A2A30; color: #FFE600; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; line-height: 1.2; }
         .tl-trailer-btn:hover { background: rgba(255,230,0,.1); border-color: #FFE600; }
         .tl-trailer-loading { display: flex; align-items: center; gap: 7px; font-size: 12px; color: #9C9CA4; padding: 5px 0; }
-        .tl-trailer-frame { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: #000; }
-        .tl-trailer-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
+        .tl-trailer-lightbox-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.8); display: flex; align-items: center; justify-content: center; z-index: 60; padding: 24px; }
+        .tl-trailer-lightbox { width: 100%; max-width: 900px; }
+        .tl-trailer-lightbox-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        .tl-trailer-lightbox-title { font-size: 14px; font-weight: 600; color: #FAFAF9; }
+        .tl-trailer-lightbox-close { background: #141416; border: 1px solid #26262B; color: #9C9CA4; border-radius: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; }
+        .tl-trailer-lightbox-close:hover { background: #1A1A1D; border-color: #33333A; color: #fff; }
+        .tl-trailer-lightbox-frame { position: relative; width: 100%; aspect-ratio: 16/9; border-radius: 10px; overflow: hidden; background: #000; box-shadow: 0 24px 60px -20px rgba(0,0,0,.8); }
+        .tl-trailer-lightbox-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: none; }
         .tl-overview-label { display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
         .tl-overview-label span:first-of-type { font-size: 13px; font-weight: 600; color: #EDEDF0; }
         .tl-overview-label span:last-of-type { font-size: 13px; color: #9C9CA4; }
@@ -1380,28 +1392,17 @@ export default function App() {
                               </div>
                               <div className="tl-inspiration-note">{ex.note}</div>
 
-                              {t.status === "ready" ? (
-                                <div className="tl-trailer-frame">
-                                  <iframe
-                                    src={`https://www.youtube.com/embed/${t.videoId}?autoplay=1`}
-                                    title={`${ex.title} trailer`}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                  />
-                                </div>
-                              ) : (
-                                <div className="tl-inspiration-links">
-                                  {t.status === "loading" ? (
-                                    <span className="tl-trailer-loading"><Spinner size={12} /> Finding trailer…</span>
-                                  ) : (
-                                    <button className="tl-trailer-btn" onClick={() => playTrailer(ex.title, ex.year)}>▶ Play trailer</button>
-                                  )}
-                                  {t.status === "error" && (
-                                    <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Search instead ↗</a>
-                                  )}
-                                  <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
-                                </div>
-                              )}
+                              <div className="tl-inspiration-links">
+                                {t.status === "loading" ? (
+                                  <span className="tl-trailer-loading"><Spinner size={12} /> Finding trailer…</span>
+                                ) : (
+                                  <button className="tl-trailer-btn" onClick={() => playTrailer(ex.title, ex.year)}>▶ Play trailer</button>
+                                )}
+                                {t.status === "error" && (
+                                  <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Search instead ↗</a>
+                                )}
+                                <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
+                              </div>
                             </div>
                           );
                         })}
@@ -1708,6 +1709,25 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {lightboxTrailer && (
+        <div className="tl-trailer-lightbox-backdrop" onClick={() => setLightboxTrailer(null)}>
+          <div className="tl-trailer-lightbox" onClick={(e) => e.stopPropagation()}>
+            <div className="tl-trailer-lightbox-head">
+              <span className="tl-trailer-lightbox-title">{lightboxTrailer.title} — trailer</span>
+              <button className="tl-trailer-lightbox-close" onClick={() => setLightboxTrailer(null)}><IconClose /></button>
+            </div>
+            <div className="tl-trailer-lightbox-frame">
+              <iframe
+                src={`https://www.youtube.com/embed/${lightboxTrailer.videoId}?autoplay=1`}
+                title={`${lightboxTrailer.title} trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {libraryOpen && (
         <>
