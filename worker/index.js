@@ -37,7 +37,7 @@
  * error \u2014 plenty for personal use.
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash"; // swap to "gemini-2.5-flash-lite" for even higher free rate limits
+const GEMINI_MODEL = "gemini-3.1-flash-lite"; // gemini-2.5-flash is deprecated for new API keys \u2014 keep this one
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search";
 
