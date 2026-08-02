@@ -535,6 +535,7 @@ export default function App() {
   const [shownExamples, setShownExamples] = useState({});
   const [inspirationLoading, setInspirationLoading] = useState({});
   const [inspirationError, setInspirationError] = useState({});
+  const [inspirationPage, setInspirationPage] = useState({});
   const [trailers, setTrailers] = useState({});
   const [lightboxTrailer, setLightboxTrailer] = useState(null);
   const [filmTitle, setFilmTitle] = useState("");
@@ -1014,6 +1015,7 @@ export default function App() {
   const refreshInspiration = async (frameworkKey) => {
     const frameworkObj = FRAMEWORKS.find((x) => x.key === frameworkKey);
     const key = inspirationKey(frameworkKey, state.targetLength, state.genre);
+    setInspirationPage((s) => ({ ...s, [key]: 0 }));
     if (state.genre && state.genre !== "Any") {
       setInspirationLoading((s) => ({ ...s, [key]: true }));
       setInspirationError((s) => ({ ...s, [key]: null }));
@@ -1170,6 +1172,11 @@ export default function App() {
         .tl-genre-fallback-note { font-size: 11.5px; color: #FF7A7A; margin-bottom: 10px; }
         .tl-inspiration-loading { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9C9CA4; padding: 20px 0; }
         .tl-inspiration-ai-tag { color: #6C6C74; font-weight: 500; text-transform: none; letter-spacing: normal; }
+        .tl-inspiration-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; }
+        .tl-pager-btn { background: #141416; border: 1px solid #26262B; color: #C9C9CE; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 6px 12px; }
+        .tl-pager-btn:hover:not(:disabled) { background: #1A1A1D; border-color: #FFE600; color: #fff; }
+        .tl-pager-btn:disabled { opacity: .4; cursor: not-allowed; }
+        .tl-pager-dots { font-size: 12px; color: #6C6C74; font-family: 'JetBrains Mono', monospace; }
         .tl-inspiration-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #6C6C74; font-weight: 600; }
         .tl-refresh-btn { background: none; border: 1px solid #2A2A30; color: #9C9CA4; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; }
         .tl-refresh-btn:hover { background: #1A1A1D; border-color: #FFE600; color: #FAFAF9; }
@@ -1494,35 +1501,53 @@ export default function App() {
                       {inspirationError[inspirationKey(fw, state.targetLength, state.genre)] && (
                         <div className="tl-genre-fallback-note">{inspirationError[inspirationKey(fw, state.targetLength, state.genre)]}</div>
                       )}
-                      {!inspirationLoading[inspirationKey(fw, state.targetLength, state.genre)] && (
-                        <div className="tl-inspiration-list">
-                          {(shownExamples[inspirationKey(fw, state.targetLength, state.genre)] || []).map((ex, exi) => {
-                            const tKey = `${ex.title}-${ex.year}`;
-                            const t = trailers[tKey] || { status: "idle" };
-                            return (
-                              <div className="tl-inspiration-item" key={exi}>
-                                <div className="tl-inspiration-title-row">
-                                  <span className="tl-inspiration-title">{ex.title}</span>
-                                  <span className="tl-inspiration-year">{ex.year}</span>
-                                </div>
-                                <div className="tl-inspiration-note">{ex.note}</div>
+                      {!inspirationLoading[inspirationKey(fw, state.targetLength, state.genre)] && (() => {
+                        const invKey = inspirationKey(fw, state.targetLength, state.genre);
+                        const allEx = shownExamples[invKey] || [];
+                        const pageSize = 4;
+                        const totalPages = Math.max(1, Math.ceil(allEx.length / pageSize));
+                        const page = Math.min(inspirationPage[invKey] || 0, totalPages - 1);
+                        const pageItems = allEx.slice(page * pageSize, page * pageSize + pageSize);
+                        const goPage = (delta) => setInspirationPage((s) => ({ ...s, [invKey]: Math.max(0, Math.min(totalPages - 1, page + delta)) }));
+                        return (
+                          <>
+                            <div className="tl-inspiration-list">
+                              {pageItems.map((ex, exi) => {
+                                const tKey = `${ex.title}-${ex.year}`;
+                                const t = trailers[tKey] || { status: "idle" };
+                                return (
+                                  <div className="tl-inspiration-item" key={exi}>
+                                    <div className="tl-inspiration-title-row">
+                                      <span className="tl-inspiration-title">{ex.title}</span>
+                                      <span className="tl-inspiration-year">{ex.year}</span>
+                                    </div>
+                                    <div className="tl-inspiration-note">{ex.note}</div>
 
-                                <div className="tl-inspiration-links">
-                                  {t.status === "loading" ? (
-                                    <span className="tl-trailer-loading"><Spinner size={12} /> Finding trailer…</span>
-                                  ) : (
-                                    <button className="tl-trailer-btn" onClick={() => playTrailer(ex.title, ex.year)}>▶ Play trailer</button>
-                                  )}
-                                  {t.status === "error" && (
-                                    <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Search instead ↗</a>
-                                  )}
-                                  <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
-                                </div>
+                                    <div className="tl-inspiration-links">
+                                      {t.status === "loading" ? (
+                                        <span className="tl-trailer-loading"><Spinner size={12} /> Finding trailer…</span>
+                                      ) : (
+                                        <button className="tl-trailer-btn" onClick={() => playTrailer(ex.title, ex.year)}>▶ Play trailer</button>
+                                      )}
+                                      {t.status === "error" && (
+                                        <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Search instead ↗</a>
+                                      )}
+                                      <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            {totalPages > 1 && (
+                              <div className="tl-inspiration-pager">
+                                <button className="tl-pager-btn" onClick={() => goPage(-1)} disabled={page === 0}>‹ Prev</button>
+                                <span className="tl-pager-dots">{page + 1} / {totalPages}</span>
+                                <button className="tl-pager-btn" onClick={() => goPage(1)} disabled={page === totalPages - 1}>Next ›</button>
                               </div>
-                            );
-                          })}
-                        </div>
-                      )}
+                            )}
+                          </>
+                        );
+                      })()}
                     </div>
 
                     <div className="tl-viewtoggle">
