@@ -681,6 +681,24 @@ export default function App() {
     }
   };
 
+  const getSuggestions = async (i) => {
+    const b = getBeat(fw, i);
+    const def = defs[i];
+    if (!b.hole) return;
+    patchBeat(fw, i, { suggestionsStatus: "thinking" });
+    try {
+      const txt = await callClaude({
+        system: `You are a sharp film story consultant. A writer is working on the "${def.title}" beat of their story and you've already flagged a specific hole in their answer. Give 2\u20133 concrete, specific ways they could actually fix that exact hole \u2014 real narrative choices or rewrite directions, not vague advice like "add more conflict." Respond ONLY as a minified JSON array of strings, each under 25 words.`,
+        messages: [{ role: "user", content: `Beat: ${def.title}\nWhat this beat should accomplish: ${def.question}\nThe writer's answer:\n"""${b.answer}"""\nThe hole I flagged: "${b.hole}"\n\nGive concrete fixes for that specific hole.` }],
+      });
+      const j = parseJSON(txt);
+      if (Array.isArray(j) && j.length) patchBeat(fw, i, { suggestionsStatus: "ready", suggestions: j });
+      else patchBeat(fw, i, { suggestionsStatus: "ready", suggestions: [txt || "Couldn't parse a response \u2014 try again."] });
+    } catch (e) {
+      patchBeat(fw, i, { suggestionsStatus: "error", suggestionsError: e.message || "Something went wrong. Try again." });
+    }
+  };
+
   const goCard = (i) => {
     patch({ developView: "write" });
     setTimeout(() => beatSectionRefs.current[i]?.scrollIntoView({ behavior: "smooth", block: "center" }), 60);
@@ -1251,6 +1269,17 @@ export default function App() {
         .tl-note-hole .tl-note-title { color: #F5A623; }
         .tl-note-push { background: rgba(255,230,0,.08); border: 1px solid rgba(255,230,0,.26); }
         .tl-note-push .tl-note-title { color: #FFE600; }
+        .tl-suggest-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 7px; width: 100%;
+          background: rgba(90,169,255,.1); color: #5AA9FF; border: 1px solid rgba(90,169,255,.3);
+          border-radius: 2px; padding: 8px 12px; font-size: 12.5px; font-weight: 600;
+        }
+        .tl-suggest-btn:hover:not(:disabled) { background: rgba(90,169,255,.18); }
+        .tl-suggest-btn:disabled { opacity: .6; pointer-events: none; }
+        .tl-note-suggestions { background: rgba(90,169,255,.08); border: 1px solid rgba(90,169,255,.24); }
+        .tl-note-suggestions .tl-note-title { color: #5AA9FF; }
+        .tl-suggestions-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+        .tl-suggestions-list li { font-size: 13px; line-height: 1.45; color: #C9C9CE; }
         .tl-note-error { font-size: 13px; color: #FF7A7A; background: rgba(255,90,90,.08); border: 1px solid rgba(255,90,90,.25); border-radius: 9px; padding: 8px 10px; }
 
         /* corkboard */
@@ -1577,6 +1606,19 @@ export default function App() {
                                     <div className="tl-note tl-note-working"><div className="tl-note-title">Working</div><div className="tl-note-body">{b.strength}</div></div>
                                     <div className="tl-note tl-note-hole"><div className="tl-note-title">The hole</div><div className="tl-note-body">{b.hole}</div></div>
                                     <div className="tl-note tl-note-push"><div className="tl-note-title">Push further</div><div className="tl-note-body">{b.followup}</div></div>
+                                    <button className="tl-suggest-btn" disabled={b.suggestionsStatus === "thinking"} onClick={() => getSuggestions(i)}>
+                                      <IconSpark /> {b.suggestionsStatus === "thinking" ? "Thinking…" : b.suggestionsStatus === "ready" ? "More suggestions" : "Suggestions to fix this"}
+                                    </button>
+                                    {b.suggestionsStatus === "thinking" && <div className="tl-reading"><Spinner /> Thinking…</div>}
+                                    {b.suggestionsStatus === "ready" && (
+                                      <div className="tl-note tl-note-suggestions">
+                                        <div className="tl-note-title">Suggestions</div>
+                                        <ul className="tl-suggestions-list">
+                                          {b.suggestions.map((s, si) => <li key={si}>{s}</li>)}
+                                        </ul>
+                                      </div>
+                                    )}
+                                    {b.suggestionsStatus === "error" && <div className="tl-note-error">{b.suggestionsError}</div>}
                                   </div>
                                 )}
                                 {errored && <div className="tl-note-error">{b.errorMsg}</div>}
