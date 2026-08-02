@@ -7,109 +7,147 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 const FRAMEWORKS = [
   { key: "clock", name: "Story Clock", count: 8, unit: "beats", blurb: "The story circle — comfort, desire, descent, return. Lean and rhythmic.", best: "Best for shorts", fits: ["micro", "short", "long_short"],
     examples: [
-      { title: "Finding Nemo", year: 2003, note: "A textbook case: comfort \u2192 loss \u2192 an unfamiliar ocean \u2192 change." },
-      { title: "Community", year: 2009, note: "Dan Harmon's own show \u2014 he built this circle to write it." },
-      { title: "Rick and Morty", year: 2013, note: "Also Harmon's \u2014 nearly every episode runs the circle solo." },
-      { title: "The Wizard of Oz", year: 1939, note: "Leaves home, unfamiliar world, pays a price, returns changed." },
-      { title: "Monsters, Inc.", year: 2001, note: "Comfort zone disrupted by a single accidental need." },
-      { title: "Zootopia", year: 2016, note: "Clear want, unfamiliar city, real cost, genuine change." },
-      { title: "Harry Potter and the Sorcerer's Stone", year: 2001, note: "Ordinary cupboard life to Hogwarts and back, changed." },
+      { title: "Finding Nemo", year: 2003, genre: "Animation", note: "A textbook case: comfort \u2192 loss \u2192 an unfamiliar ocean \u2192 change." },
+      { title: "Community", year: 2009, genre: "Comedy", note: "Dan Harmon's own show \u2014 he built this circle to write it." },
+      { title: "Rick and Morty", year: 2013, genre: "Comedy", note: "Also Harmon's \u2014 nearly every episode runs the circle solo." },
+      { title: "The Wizard of Oz", year: 1939, genre: "Fantasy", note: "Leaves home, unfamiliar world, pays a price, returns changed." },
+      { title: "Monsters, Inc.", year: 2001, genre: "Animation", note: "Comfort zone disrupted by a single accidental need." },
+      { title: "Zootopia", year: 2016, genre: "Animation", note: "Clear want, unfamiliar city, real cost, genuine change." },
+      { title: "Harry Potter and the Sorcerer's Stone", year: 2001, genre: "Fantasy", note: "Ordinary cupboard life to Hogwarts and back, changed." },
     ],
     shortExamples: [
-      { title: "Piper", year: 2016, note: "Pixar short: comfort on the shore \u2192 forced out to feed \u2192 real cost \u2192 changed by the tide." },
-      { title: "Float", year: 2019, note: "Pixar SparkShorts: a comfortable secret forced into the open, a real change in how it's held." },
-      { title: "Bao", year: 2018, note: "Comfortable empty nest \u2192 a \"child\" who leaves \u2192 loss \u2192 genuine reconciliation." },
-      { title: "Purl", year: 2018, note: "Pixar SparkShorts: comfort at a new job, misfit need, adapts, returns changed." },
-      { title: "Presto", year: 2008, note: "A magician's routine disrupted by his own rabbit, escalating until he changes his ways." },
-      { title: "For the Birds", year: 2000, note: "A flock's comfort zone disrupted by an outsider \u2014 and a real cost paid for it." },
+      { title: "Two Distant Strangers", year: 2020, genre: "Drama", note: "Oscar winner \u2014 a literal repeating loop until real change becomes possible." },
+      { title: "Curfew", year: 2012, genre: "Drama", note: "A shut-in's routine disrupted by unexpected duty, a real cost paid, an altered return." },
+      { title: "The Silent Child", year: 2017, genre: "Drama", note: "Oscar winner \u2014 routine disrupted by a new need, taught, a real price, genuine change." },
+      { title: "Buzkashi Boys", year: 2012, genre: "Drama", note: "Ordinary life, a pursued escape, a real cost, an internally altered return." },
+      { title: "Skin", year: 2018, genre: "Drama", note: "Oscar winner \u2014 a status quo disrupted by real consequence and an altered world." },
+      { title: "Wasp", year: 2003, genre: "Drama", note: "A mother's routine, real need, a heavy cost, an uneasy return." },
+      { title: "Stutterer", year: 2015, genre: "Drama", note: "Oscar winner \u2014 routine disrupted by real vulnerability, a genuine change." },
+      { title: "The New Tenants", year: 2009, genre: "Comedy", note: "Oscar winner \u2014 a new routine repeatedly disrupted in escalating dark-comic cycles." },
+      { title: "Fauve", year: 2018, genre: "Drama", note: "Comfort at play escalates to real cost \u2014 an altered, unresolved ending." },
+      { title: "Boogaloo and Graham", year: 2014, genre: "Comedy", note: "A family routine disrupted by pets, a real loss, genuine change by the end." },
+      { title: "Time Freak", year: 2011, genre: "Comedy", note: "An obsessive routine escalates until it forces a real reckoning." },
+      { title: "Piper", year: 2016, genre: "Animation", note: "The one animated pick here \u2014 still a clean, complete circle if you want it." },
     ] },
   { key: "journey", name: "Hero's Journey", count: 12, unit: "stages", blurb: "The classic mythic arc — call, threshold, ordeal, elixir.", best: "Best for transformation", fits: ["long_short", "feature"],
     examples: [
-      { title: "Star Wars: A New Hope", year: 1977, note: "The example Campbell and Vogler themselves point to." },
-      { title: "The Lion King", year: 1994, note: "Exile, mentor, ordeal, and a literal return to claim the throne." },
-      { title: "The Matrix", year: 1999, note: "Refusal, the red pill threshold, death and rebirth as Neo." },
-      { title: "Harry Potter and the Sorcerer's Stone", year: 2001, note: "Mentor in Hagrid, threshold at Platform 9\u00be, ordeal with Quirrell." },
-      { title: "The Hobbit: An Unexpected Journey", year: 2012, note: "A reluctant hero dragged across the threshold by his mentor." },
-      { title: "Moana", year: 2016, note: "Clear call, refusal, ocean as mentor, a real ordeal with Te K\u0101." },
-      { title: "The Fellowship of the Ring", year: 2001, note: "Shire to Rivendell to Moria \u2014 stage by stage, almost by the book." },
+      { title: "Star Wars: A New Hope", year: 1977, genre: "Sci-Fi", note: "The example Campbell and Vogler themselves point to." },
+      { title: "The Lion King", year: 1994, genre: "Animation", note: "Exile, mentor, ordeal, and a literal return to claim the throne." },
+      { title: "The Matrix", year: 1999, genre: "Sci-Fi", note: "Refusal, the red pill threshold, death and rebirth as Neo." },
+      { title: "Harry Potter and the Sorcerer's Stone", year: 2001, genre: "Fantasy", note: "Mentor in Hagrid, threshold at Platform 9\u00be, ordeal with Quirrell." },
+      { title: "The Hobbit: An Unexpected Journey", year: 2012, genre: "Fantasy", note: "A reluctant hero dragged across the threshold by his mentor." },
+      { title: "Moana", year: 2016, genre: "Animation", note: "Clear call, refusal, ocean as mentor, a real ordeal with Te K\u0101." },
+      { title: "The Fellowship of the Ring", year: 2001, genre: "Fantasy", note: "Shire to Rivendell to Moria \u2014 stage by stage, almost by the book." },
     ],
     shortExamples: [
-      { title: "The Present", year: 2014, note: "A reluctant boy, a call he refuses, an ordeal that changes him \u2014 compressed to a few minutes." },
-      { title: "Lava", year: 2014, note: "Pixar short: a small, complete longing-and-quest shape in song form." },
-      { title: "Alike", year: 2015, note: "A quiet call to individuality against an ordinary, gray world." },
-      { title: "The Dam Keeper", year: 2014, note: "Ordinary world, a threshold into real danger, an ordeal, a changed return." },
-      { title: "Feast", year: 2014, note: "A small call-and-reward shape told entirely through one dog's meals." },
-      { title: "Boundin'", year: 2003, note: "Loss of innocence, a mentor figure, and a genuine change in outlook." },
+      { title: "The Phone Call", year: 2013, genre: "Drama", note: "Oscar winner \u2014 a literal call to adventure into a stranger's crisis, an ordeal, a changed return." },
+      { title: "Curfew", year: 2012, genre: "Drama", note: "A reluctant call to responsibility, a threshold he didn't choose, a real ordeal, genuine change." },
+      { title: "Stutterer", year: 2015, genre: "Drama", note: "A call toward connection, the threshold of meeting face to face, an ordeal of vulnerability." },
+      { title: "Buzkashi Boys", year: 2012, genre: "Drama", note: "A call toward a bigger life, a threshold of training, a real ordeal, a bittersweet return." },
+      { title: "Two Distant Strangers", year: 2020, genre: "Drama", note: "Oscar winner \u2014 a repeated threshold and ordeal until real change is possible." },
+      { title: "The Silent Child", year: 2017, genre: "Drama", note: "A mentor's call into a new world of communication, a real ordeal, genuine change." },
+      { title: "Fauve", year: 2018, genre: "Drama", note: "A threshold crossed in play that turns into a real, costly ordeal." },
+      { title: "The Neighbors' Window", year: 2019, genre: "Drama", note: "A call toward reflection through a literal window, an internal ordeal, a changed outlook." },
+      { title: "Skin", year: 2018, genre: "Drama", note: "A threshold moment forces a real ordeal with lasting consequence." },
+      { title: "Wasp", year: 2003, genre: "Drama", note: "A call toward survival, a genuine ordeal, an uneasy return." },
+      { title: "Boogaloo and Graham", year: 2014, genre: "Comedy", note: "A small-scale call, threshold, and ordeal, played at family scale." },
+      { title: "One Small Step", year: 2018, genre: "Animation", note: "The one animated pick here \u2014 still a clean call-threshold-ordeal-return shape." },
     ] },
   { key: "cat", name: "Save the Cat", count: 15, unit: "beats", blurb: "Blake Snyder’s beat sheet — precise page-count turns and a midpoint pivot.", best: "Best for tight plotting", fits: ["feature", "long_short"],
     examples: [
-      { title: "Legally Blonde", year: 2001, note: "Blake Snyder's own case study in the book, beat for beat." },
-      { title: "Miss Congeniality", year: 2000, note: "Clean midpoint pivot from mockery to genuine transformation." },
-      { title: "The Hunger Games", year: 2012, note: "Sharp catalyst and an unmistakable break into act two." },
-      { title: "Little Miss Sunshine", year: 2006, note: "A frequently cited example for its tight, honest beat structure." },
-      { title: "The Devil Wears Prada", year: 2006, note: "Textbook fun-and-games section \u2014 the makeover montage beat." },
-      { title: "Erin Brockovich", year: 2000, note: "Cited often for its clean debate-to-break-into-two turn." },
-      { title: "Iron Man", year: 2008, note: "Origin story mapped almost exactly onto the 15 beats." },
+      { title: "Legally Blonde", year: 2001, genre: "Comedy", note: "Blake Snyder's own case study in the book, beat for beat." },
+      { title: "Miss Congeniality", year: 2000, genre: "Comedy", note: "Clean midpoint pivot from mockery to genuine transformation." },
+      { title: "The Hunger Games", year: 2012, genre: "Action", note: "Sharp catalyst and an unmistakable break into act two." },
+      { title: "Little Miss Sunshine", year: 2006, genre: "Comedy", note: "A frequently cited example for its tight, honest beat structure." },
+      { title: "The Devil Wears Prada", year: 2006, genre: "Comedy", note: "Textbook fun-and-games section \u2014 the makeover montage beat." },
+      { title: "Erin Brockovich", year: 2000, genre: "Drama", note: "Cited often for its clean debate-to-break-into-two turn." },
+      { title: "Iron Man", year: 2008, genre: "Action", note: "Origin story mapped almost exactly onto the 15 beats." },
     ],
     shortExamples: [
-      { title: "Two Cars, One Night", year: 2003, note: "Taika Waititi's Oscar-nominated short \u2014 tight, economical turns for its length." },
-      { title: "Curfew", year: 2012, note: "Oscar winner; a clean setup-to-midpoint-to-resolution shape worth studying for pacing." },
-      { title: "The Neighbors' Window", year: 2019, note: "Oscar winner built almost entirely around one sharp midpoint turn." },
-      { title: "Six Shooter", year: 2004, note: "Martin McDonagh's Oscar winner \u2014 escalating beats packed into one train ride." },
-      { title: "Wasp", year: 2003, note: "Andrea Arnold's Oscar winner \u2014 a clean, uncomfortable midpoint reversal." },
-      { title: "Stutterer", year: 2015, note: "Oscar winner with a sharp catalyst and an unmistakable final-act turn." },
+      { title: "Two Cars, One Night", year: 2003, genre: "Drama", note: "Taika Waititi's Oscar-nominated short \u2014 tight, economical turns for its length." },
+      { title: "Curfew", year: 2012, genre: "Drama", note: "Oscar winner; a clean setup-to-midpoint-to-resolution shape worth studying for pacing." },
+      { title: "The Neighbors' Window", year: 2019, genre: "Drama", note: "Oscar winner built almost entirely around one sharp midpoint turn." },
+      { title: "Six Shooter", year: 2004, genre: "Comedy", note: "Martin McDonagh's Oscar winner \u2014 escalating beats packed into one train ride." },
+      { title: "Wasp", year: 2003, genre: "Drama", note: "Andrea Arnold's Oscar winner \u2014 a clean, uncomfortable midpoint reversal." },
+      { title: "Stutterer", year: 2015, genre: "Drama", note: "Oscar winner with a sharp catalyst and an unmistakable final-act turn." },
+      { title: "Time Freak", year: 2011, genre: "Comedy", note: "Oscar-nominated \u2014 a tightly engineered comedic turn structure." },
+      { title: "Boogaloo and Graham", year: 2014, genre: "Comedy", note: "Oscar-nominated \u2014 clean, well-paced turns for its runtime." },
+      { title: "The Lunch Date", year: 1989, genre: "Drama", note: "Economical beats \u2014 setup, reversal, and a clean final twist." },
+      { title: "Validation", year: 2007, genre: "Comedy", note: "A tight midpoint flip most beat-sheet fans point to as a model." },
+      { title: "World of Tomorrow", year: 2015, genre: "Sci-Fi", note: "Odd, but structurally disciplined beat-to-beat for its length." },
+      { title: "One Small Step", year: 2018, genre: "Animation", note: "Clean catalyst and a well-earned final-act payoff." },
     ] },
   { key: "threeact", name: "Three-Act", count: 6, unit: "movements", blurb: "Setup, confrontation, resolution — the bare structural bones.", best: "Best for fast drafts", fits: ["micro", "short", "long_short", "feature"],
     examples: [
-      { title: "Jaws", year: 1975, note: "About as clean a three-act spine as exists in mainstream film." },
-      { title: "Die Hard", year: 1988, note: "Setup on the plane, confrontation in the tower, resolution at the end." },
-      { title: "Rocky", year: 1976, note: "Ordinary life, the fight is set, the fight itself \u2014 nothing fancier." },
-      { title: "Casablanca", year: 1942, note: "A classic-Hollywood-clean three-act reference." },
-      { title: "Alien", year: 1979, note: "Setup on the Nostromo, confrontation with the creature, survival." },
-      { title: "Toy Story", year: 1995, note: "Rivalry setup, lost-together confrontation, resolution home." },
-      { title: "The Godfather", year: 1972, note: "Epic in scale but structurally a clean three-act shape." },
+      { title: "Jaws", year: 1975, genre: "Thriller", note: "About as clean a three-act spine as exists in mainstream film." },
+      { title: "Die Hard", year: 1988, genre: "Action", note: "Setup on the plane, confrontation in the tower, resolution at the end." },
+      { title: "Rocky", year: 1976, genre: "Drama", note: "Ordinary life, the fight is set, the fight itself \u2014 nothing fancier." },
+      { title: "Casablanca", year: 1942, genre: "Romance", note: "A classic-Hollywood-clean three-act reference." },
+      { title: "Alien", year: 1979, genre: "Horror", note: "Setup on the Nostromo, confrontation with the creature, survival." },
+      { title: "Toy Story", year: 1995, genre: "Animation", note: "Rivalry setup, lost-together confrontation, resolution home." },
+      { title: "The Godfather", year: 1972, genre: "Drama", note: "Epic in scale but structurally a clean three-act shape." },
     ],
     shortExamples: [
-      { title: "World of Tomorrow", year: 2015, note: "Don Hertzfeldt \u2014 a complete, bizarre three-act shape in 16 minutes." },
-      { title: "Validation", year: 2007, note: "Setup, a complication that flips the premise, a clean resolution." },
-      { title: "The Black Hole", year: 2008, note: "Tight, near-wordless setup/complication/resolution in about 3 minutes." },
-      { title: "Six Shooter", year: 2004, note: "A single train ride with a clean setup, confrontation, and resolution." },
-      { title: "Stutterer", year: 2015, note: "Compact and clean \u2014 setup, a real complication, an earned resolution." },
-      { title: "The Lunch Date", year: 1989, note: "Oscar winner \u2014 about as clean a three-act short as exists." },
+      { title: "World of Tomorrow", year: 2015, genre: "Sci-Fi", note: "Don Hertzfeldt \u2014 a complete, bizarre three-act shape in 16 minutes." },
+      { title: "Validation", year: 2007, genre: "Comedy", note: "Setup, a complication that flips the premise, a clean resolution." },
+      { title: "The Black Hole", year: 2008, genre: "Thriller", note: "Tight, near-wordless setup/complication/resolution in about 3 minutes." },
+      { title: "Six Shooter", year: 2004, genre: "Comedy", note: "A single train ride with a clean setup, confrontation, and resolution." },
+      { title: "Stutterer", year: 2015, genre: "Drama", note: "Compact and clean \u2014 setup, a real complication, an earned resolution." },
+      { title: "The Lunch Date", year: 1989, genre: "Drama", note: "Oscar winner \u2014 about as clean a three-act short as exists." },
+      { title: "Two Cars, One Night", year: 2003, genre: "Drama", note: "Simple setup, a real complication in the parking lot, a quiet resolution." },
+      { title: "Wasp", year: 2003, genre: "Drama", note: "A clean three-part shape carrying real weight in a short runtime." },
+      { title: "Curfew", year: 2012, genre: "Drama", note: "Setup, forced confrontation with the past, an earned resolution." },
+      { title: "The Neighbors' Window", year: 2019, genre: "Drama", note: "A classic three-part shape around a single observed relationship." },
+      { title: "Gopher Broke", year: 2004, genre: "Comedy", note: "Simple, escalating setup/complication/resolution, played for laughs." },
+      { title: "Time Freak", year: 2011, genre: "Comedy", note: "A tidy three-act comedic structure end to end." },
     ] },
   { key: "sequence", name: "Sequence Method", count: 8, unit: "sequences", blurb: "Eight mini-movies, each with its own tension and release.", best: "Best for episodic shorts", fits: ["long_short", "feature"],
     examples: [
-      { title: "Speed", year: 1994, note: "Built almost entirely from self-contained, ticking-clock sequences." },
-      { title: "The Fugitive", year: 1993, note: "Classic reference for sequence-driven studio screenwriting." },
-      { title: "Die Hard", year: 1988, note: "Also holds up read as eight mini-movies, not just three acts." },
-      { title: "Raiders of the Lost Ark", year: 1981, note: "The film Frank Daniel himself used to teach this method." },
-      { title: "Thelma & Louise", year: 1991, note: "Each stop on the road reads as its own complete mini-movie." },
-      { title: "Lethal Weapon", year: 1987, note: "Escalating sequences, each with a clear turn of its own." },
-      { title: "Mission: Impossible", year: 1996, note: "Heist-style sequencing, each job a self-contained unit." },
+      { title: "Speed", year: 1994, genre: "Action", note: "Built almost entirely from self-contained, ticking-clock sequences." },
+      { title: "The Fugitive", year: 1993, genre: "Thriller", note: "Classic reference for sequence-driven studio screenwriting." },
+      { title: "Die Hard", year: 1988, genre: "Action", note: "Also holds up read as eight mini-movies, not just three acts." },
+      { title: "Raiders of the Lost Ark", year: 1981, genre: "Action", note: "The film Frank Daniel himself used to teach this method." },
+      { title: "Thelma & Louise", year: 1991, genre: "Drama", note: "Each stop on the road reads as its own complete mini-movie." },
+      { title: "Lethal Weapon", year: 1987, genre: "Action", note: "Escalating sequences, each with a clear turn of its own." },
+      { title: "Mission: Impossible", year: 1996, genre: "Action", note: "Heist-style sequencing, each job a self-contained unit." },
     ],
     shortExamples: [
-      { title: "Curfew", year: 2012, note: "Reads as several small self-contained movements stitched into one short." },
-      { title: "Validation", year: 2007, note: "Each interaction at the parking booth functions like its own mini-sequence." },
-      { title: "The Lunch Date", year: 1989, note: "Each small exchange builds like its own tiny, complete sequence." },
-      { title: "Gopher Broke", year: 2004, note: "Escalating comedic sequences, each with its own setup and payoff." },
-      { title: "Six Shooter", year: 2004, note: "Distinct movements within a single train ride, each with its own turn." },
+      { title: "Curfew", year: 2012, genre: "Drama", note: "Reads as several small self-contained movements stitched into one short." },
+      { title: "Validation", year: 2007, genre: "Comedy", note: "Each interaction at the parking booth functions like its own mini-sequence." },
+      { title: "The Lunch Date", year: 1989, genre: "Drama", note: "Each small exchange builds like its own tiny, complete sequence." },
+      { title: "Gopher Broke", year: 2004, genre: "Comedy", note: "Escalating comedic sequences, each with its own setup and payoff." },
+      { title: "Six Shooter", year: 2004, genre: "Comedy", note: "Distinct movements within a single train ride, each with its own turn." },
+      { title: "World of Tomorrow", year: 2015, genre: "Sci-Fi", note: "Structured as a series of self-contained vignettes, sequence by sequence." },
+      { title: "Stutterer", year: 2015, genre: "Drama", note: "Each scene functions as its own small, complete movement." },
+      { title: "Wasp", year: 2003, genre: "Drama", note: "Each stretch of the evening reads as its own rising-and-releasing unit." },
+      { title: "Two Cars, One Night", year: 2003, genre: "Drama", note: "The parking-lot night breaks cleanly into distinct little sequences." },
+      { title: "Time Freak", year: 2011, genre: "Comedy", note: "Built from repeated, escalating mini-sequences by design." },
+      { title: "Boogaloo and Graham", year: 2014, genre: "Comedy", note: "Each stage of the story reads as its own small, complete movement." },
+      { title: "The Neighbors' Window", year: 2019, genre: "Drama", note: "Told across distinct time-jump sequences, each with its own shift." },
     ] },
   { key: "kisho", name: "Kishōtenketsu", count: 4, unit: "acts", blurb: "Four movements built on a twist rather than conflict.", best: "Best for mood pieces", fits: ["micro", "short", "long_short", "feature"],
     examples: [
-      { title: "Spirited Away", year: 2001, note: "Movement through a strange world, not conflict, drives it." },
-      { title: "My Neighbor Totoro", year: 1988, note: "Almost no antagonist at all \u2014 pure ki-sho-ten-ketsu." },
-      { title: "Tokyo Story", year: 1953, note: "Ozu \u2014 the classic reference point for this structure." },
-      { title: "Kiki's Delivery Service", year: 1989, note: "A gentle turn (losing her powers), not a villain, reframes everything." },
-      { title: "Only Yesterday", year: 1991, note: "Takahata \u2014 memory and present day sit side by side, no conflict engine." },
-      { title: "Departures", year: 2008, note: "A quiet reframing of a taboo job, not a confrontation, carries it." },
-      { title: "Paterson", year: 2016, note: "Western mood-piece often cited alongside this structure." },
+      { title: "Spirited Away", year: 2001, genre: "Animation", note: "Movement through a strange world, not conflict, drives it." },
+      { title: "My Neighbor Totoro", year: 1988, genre: "Animation", note: "Almost no antagonist at all \u2014 pure ki-sho-ten-ketsu." },
+      { title: "Tokyo Story", year: 1953, genre: "Drama", note: "Ozu \u2014 the classic reference point for this structure." },
+      { title: "Kiki's Delivery Service", year: 1989, genre: "Animation", note: "A gentle turn (losing her powers), not a villain, reframes everything." },
+      { title: "Only Yesterday", year: 1991, genre: "Animation", note: "Takahata \u2014 memory and present day sit side by side, no conflict engine." },
+      { title: "Departures", year: 2008, genre: "Drama", note: "A quiet reframing of a taboo job, not a confrontation, carries it." },
+      { title: "Paterson", year: 2016, genre: "Drama", note: "Western mood-piece often cited alongside this structure." },
     ],
     shortExamples: [
-      { title: "La Luna", year: 2011, note: "Pixar short: a gentle family-tradition twist, no antagonist anywhere." },
-      { title: "Sanjay's Super Team", year: 2015, note: "A quiet reframing of two worldviews rather than a conflict to defeat." },
-      { title: "Negative Space", year: 2017, note: "Oscar-nominated \u2014 a quiet reframing of memory, no villain in sight." },
-      { title: "In a Heartbeat", year: 2017, note: "A gentle emotional turn carries it, not a confrontation." },
-      { title: "Kitbull", year: 2019, note: "Pixar SparkShorts: trust builds through a turn, not through defeating anyone." },
+      { title: "Timecode", year: 2016, genre: "Drama", note: "Oscar winner \u2014 a quiet observational mood piece, no antagonist, carried by a turn." },
+      { title: "Ave Maria", year: 2015, genre: "Comedy", note: "A culture-clash situation resolved through a gentle reframing, not conflict." },
+      { title: "Silent Nights", year: 2016, genre: "Drama", note: "A quiet relationship turn carries the whole piece, not a confrontation." },
+      { title: "The Neighbors' Window", year: 2019, genre: "Drama", note: "Carried by observation and a turn in perspective, not a conflict resolved." },
+      { title: "Stutterer", year: 2015, genre: "Drama", note: "A quiet internal turn does the work, not an external antagonist." },
+      { title: "Curfew", year: 2012, genre: "Drama", note: "A night reframed through unexpected connection, not conflict." },
+      { title: "Wasp", year: 2003, genre: "Drama", note: "An ambiguous ending reframes rather than resolves through conflict." },
+      { title: "Two Distant Strangers", year: 2020, genre: "Drama", note: "The loop itself is the turn \u2014 not a villain to defeat." },
+      { title: "Fauve", year: 2018, genre: "Drama", note: "Tragedy reframes the whole piece rather than resolving through conflict." },
+      { title: "La Luna", year: 2011, genre: "Animation", note: "A gentle family-tradition twist, no antagonist anywhere." },
+      { title: "Sanjay's Super Team", year: 2015, genre: "Animation", note: "A quiet reframing of two worldviews rather than a conflict to defeat." },
+      { title: "Negative Space", year: 2017, genre: "Animation", note: "Oscar-nominated \u2014 a quiet reframing of memory, no villain in sight." },
     ] },
 ];
 
@@ -247,6 +285,7 @@ const DEFAULT_STATE = {
   developView: "write",
   overview: "",
   targetLength: "short",
+  genre: "Any",
   targetLengthCustom: "",
   settings: { coachStyle: "Socratic", referenceCount: 6 },
   script: [{ type: "scene", text: "" }, { type: "action", text: "" }],
@@ -494,6 +533,8 @@ export default function App() {
   const [boardResults, setBoardResults] = useState([]);
   const [boardError, setBoardError] = useState("");
   const [shownExamples, setShownExamples] = useState({});
+  const [inspirationLoading, setInspirationLoading] = useState({});
+  const [inspirationError, setInspirationError] = useState({});
   const [trailers, setTrailers] = useState({});
   const [lightboxTrailer, setLightboxTrailer] = useState(null);
   const [filmTitle, setFilmTitle] = useState("");
@@ -524,7 +565,7 @@ export default function App() {
     const data = {
       framework: state.framework, data: state.data, reviewInput: state.reviewInput,
       developView: state.developView,
-      overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom,
+      overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom, genre: state.genre,
       settings: state.settings, script: state.script,
     };
     const debounce = setTimeout(() => {
@@ -953,14 +994,41 @@ export default function App() {
     if (!frameworkObj) return [];
     const cat = lengthCategory(targetLength);
     const shorts = frameworkObj.shortExamples || [];
-    if (cat === "short") return shorts.length ? shorts : frameworkObj.examples;
-    if (cat === "feature") return frameworkObj.examples;
-    return [...shorts, ...frameworkObj.examples];
+    return cat === "short" ? (shorts.length ? shorts : frameworkObj.examples)
+      : cat === "feature" ? frameworkObj.examples
+      : [...shorts, ...frameworkObj.examples];
   };
-  const inspirationKey = (frameworkKey, targetLength) => `${frameworkKey}:${lengthCategory(targetLength)}`;
-  const refreshInspiration = (frameworkKey) => {
-    const pool = examplePool(FRAMEWORKS.find((x) => x.key === frameworkKey), state.targetLength);
-    setShownExamples((s) => ({ ...s, [inspirationKey(frameworkKey, state.targetLength)]: pickRandom(pool, 3) }));
+  const inspirationKey = (frameworkKey, targetLength, genre) => `${frameworkKey}:${lengthCategory(targetLength)}:${genre || "Any"}`;
+
+  const fetchGenreExamples = async (frameworkObj, lengthCat, genre) => {
+    const mediaLabel = lengthCat === "short" ? "short films" : lengthCat === "feature" ? "feature films" : "short films and feature films";
+    const text = await callClaude({
+      system: `You are a film-structure expert. List exactly 12 real, existing ${mediaLabel} in the ${genre} genre that clearly use the "${frameworkObj.name}" structure (${frameworkObj.blurb}). Return ONLY minified JSON: [{"title":"","year":<int>,"note":"one specific sentence on how it fits, under 20 words"}]. Every title and year must be a real, verifiable film \u2014 never invent one. Vary directors and eras within the genre where possible.`,
+      messages: [{ role: "user", content: `Genre: ${genre}. Structure: ${frameworkObj.name}.` }],
+    });
+    const j = parseJSON(text);
+    if (!Array.isArray(j) || !j.length) throw new Error("Couldn't generate examples for that genre. Try again, or pick a different genre.");
+    return j.slice(0, 12).map((x) => ({ title: x.title, year: x.year, note: x.note, genre }));
+  };
+
+  const refreshInspiration = async (frameworkKey) => {
+    const frameworkObj = FRAMEWORKS.find((x) => x.key === frameworkKey);
+    const key = inspirationKey(frameworkKey, state.targetLength, state.genre);
+    if (state.genre && state.genre !== "Any") {
+      setInspirationLoading((s) => ({ ...s, [key]: true }));
+      setInspirationError((s) => ({ ...s, [key]: null }));
+      try {
+        const results = await fetchGenreExamples(frameworkObj, lengthCategory(state.targetLength), state.genre);
+        setShownExamples((s) => ({ ...s, [key]: results }));
+      } catch (e) {
+        setInspirationError((s) => ({ ...s, [key]: e.message || "Something went wrong. Try again." }));
+      } finally {
+        setInspirationLoading((s) => ({ ...s, [key]: false }));
+      }
+    } else {
+      const pool = examplePool(frameworkObj, state.targetLength);
+      setShownExamples((s) => ({ ...s, [key]: pickRandom(pool, 4) }));
+    }
   };
 
   const playTrailer = async (title, year) => {
@@ -979,9 +1047,12 @@ export default function App() {
     }
   };
   useEffect(() => {
-    if (fw && !shownExamples[inspirationKey(fw, state.targetLength)]) refreshInspiration(fw);
+    const key = inspirationKey(fw, state.targetLength, state.genre);
+    if (fw && !shownExamples[key] && !inspirationLoading[key]) refreshInspiration(fw);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fw, state.targetLength]);
+  }, [fw, state.targetLength, state.genre]);
+
+  const GENRES = ["Any", "Animation", "Comedy", "Drama", "Action", "Thriller", "Horror", "Sci-Fi", "Fantasy", "Romance"];
 
   const renderLengthPicker = () => (
     <div className="tl-length-row">
@@ -1090,16 +1161,29 @@ export default function App() {
         .tl-overview-card { background: #141416; border: 1px solid #26262B; border-radius: 14px; padding: 15px 18px; margin-bottom: 16px; }
         .tl-inspiration-card { background: #141416; border: 1px solid #26262B; border-radius: 14px; padding: 15px 18px; margin-bottom: 16px; }
         .tl-inspiration-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .tl-inspiration-controls { display: flex; align-items: center; gap: 8px; }
+        .tl-genre-select {
+          background: #0E0E10; border: 1px solid #2A2A30; border-radius: 7px; color: #C9C9CE;
+          font-family: 'Inter', sans-serif; font-size: 12px; padding: 5px 8px; outline: none; cursor: pointer;
+        }
+        .tl-genre-select:focus { border-color: #FFE600; }
+        .tl-genre-fallback-note { font-size: 11.5px; color: #FF7A7A; margin-bottom: 10px; }
+        .tl-inspiration-loading { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #9C9CA4; padding: 20px 0; }
+        .tl-inspiration-ai-tag { color: #6C6C74; font-weight: 500; text-transform: none; letter-spacing: normal; }
         .tl-inspiration-label { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #6C6C74; font-weight: 600; }
         .tl-refresh-btn { background: none; border: 1px solid #2A2A30; color: #9C9CA4; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; }
         .tl-refresh-btn:hover { background: #1A1A1D; border-color: #FFE600; color: #FAFAF9; }
         .tl-inspiration-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
-        .tl-inspiration-item { background: #0E0E10; border: 1px solid #1E1E22; border-radius: 10px; padding: 12px 13px; }
+        .tl-inspiration-item { background: #0E0E10; border: 1px solid #1E1E22; border-radius: 10px; padding: 12px 13px; min-height: 168px; display: flex; flex-direction: column; }
+        .tl-inspiration-note {
+          font-size: 12.5px; color: #9C9CA4; line-height: 1.45; margin-bottom: 10px;
+          display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+          overflow: hidden; text-overflow: ellipsis;
+        }
         .tl-inspiration-title-row { display: flex; align-items: baseline; gap: 7px; margin-bottom: 5px; }
         .tl-inspiration-title { font-size: 13.5px; font-weight: 600; color: #FAFAF9; }
         .tl-inspiration-year { font-size: 12px; color: #6C6C74; }
-        .tl-inspiration-note { font-size: 12.5px; color: #9C9CA4; line-height: 1.45; margin-bottom: 10px; }
-        .tl-inspiration-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .tl-inspiration-links { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: auto; }
         .tl-inspiration-links a { display: inline-flex; align-items: center; font-size: 12px; font-weight: 600; color: #FFE600; text-decoration: none; border: 1px solid #2A2A30; border-radius: 7px; padding: 5px 10px; line-height: 1.2; }
         .tl-inspiration-links a:hover { background: rgba(255,230,0,.1); border-color: #FFE600; text-decoration: none; }
         .tl-trailer-btn { display: inline-flex; align-items: center; background: none; border: 1px solid #2A2A30; color: #FFE600; font-size: 12px; font-weight: 600; border-radius: 7px; padding: 5px 10px; line-height: 1.2; }
@@ -1394,37 +1478,51 @@ export default function App() {
                     <div className="tl-inspiration-card">
                       <div className="tl-inspiration-head">
                         <div className="tl-inspiration-label">
-                          Inspiration — {lengthCategory(state.targetLength) === "short" ? "short films" : lengthCategory(state.targetLength) === "feature" ? "feature films" : "shorts & features"} that use this structure
+                          Inspiration — {state.genre !== "Any" ? `${state.genre}` : (lengthCategory(state.targetLength) === "short" ? "short films" : lengthCategory(state.targetLength) === "feature" ? "feature films" : "shorts & features")} that use this structure
+                          {state.genre !== "Any" && <span className="tl-inspiration-ai-tag"> · AI-suggested, double-check specifics</span>}
                         </div>
-                        <button className="tl-refresh-btn" onClick={() => refreshInspiration(fw)}>↻ Refresh</button>
+                        <div className="tl-inspiration-controls">
+                          <select className="tl-genre-select" value={state.genre} onChange={(e) => patch({ genre: e.target.value })}>
+                            {GENRES.map((g) => <option key={g} value={g}>{g === "Any" ? "Any genre" : g}</option>)}
+                          </select>
+                          <button className="tl-refresh-btn" onClick={() => refreshInspiration(fw)} disabled={inspirationLoading[inspirationKey(fw, state.targetLength, state.genre)]}>↻ Refresh</button>
+                        </div>
                       </div>
-                      <div className="tl-inspiration-list">
-                        {(shownExamples[inspirationKey(fw, state.targetLength)] || []).map((ex, exi) => {
-                          const tKey = `${ex.title}-${ex.year}`;
-                          const t = trailers[tKey] || { status: "idle" };
-                          return (
-                            <div className="tl-inspiration-item" key={exi}>
-                              <div className="tl-inspiration-title-row">
-                                <span className="tl-inspiration-title">{ex.title}</span>
-                                <span className="tl-inspiration-year">{ex.year}</span>
-                              </div>
-                              <div className="tl-inspiration-note">{ex.note}</div>
+                      {inspirationLoading[inspirationKey(fw, state.targetLength, state.genre)] && (
+                        <div className="tl-inspiration-loading"><Spinner size={13} /> Finding {state.genre !== "Any" ? state.genre.toLowerCase() : ""} examples…</div>
+                      )}
+                      {inspirationError[inspirationKey(fw, state.targetLength, state.genre)] && (
+                        <div className="tl-genre-fallback-note">{inspirationError[inspirationKey(fw, state.targetLength, state.genre)]}</div>
+                      )}
+                      {!inspirationLoading[inspirationKey(fw, state.targetLength, state.genre)] && (
+                        <div className="tl-inspiration-list">
+                          {(shownExamples[inspirationKey(fw, state.targetLength, state.genre)] || []).map((ex, exi) => {
+                            const tKey = `${ex.title}-${ex.year}`;
+                            const t = trailers[tKey] || { status: "idle" };
+                            return (
+                              <div className="tl-inspiration-item" key={exi}>
+                                <div className="tl-inspiration-title-row">
+                                  <span className="tl-inspiration-title">{ex.title}</span>
+                                  <span className="tl-inspiration-year">{ex.year}</span>
+                                </div>
+                                <div className="tl-inspiration-note">{ex.note}</div>
 
-                              <div className="tl-inspiration-links">
-                                {t.status === "loading" ? (
-                                  <span className="tl-trailer-loading"><Spinner size={12} /> Finding trailer…</span>
-                                ) : (
-                                  <button className="tl-trailer-btn" onClick={() => playTrailer(ex.title, ex.year)}>▶ Play trailer</button>
-                                )}
-                                {t.status === "error" && (
-                                  <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Search instead ↗</a>
-                                )}
-                                <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
+                                <div className="tl-inspiration-links">
+                                  {t.status === "loading" ? (
+                                    <span className="tl-trailer-loading"><Spinner size={12} /> Finding trailer…</span>
+                                  ) : (
+                                    <button className="tl-trailer-btn" onClick={() => playTrailer(ex.title, ex.year)}>▶ Play trailer</button>
+                                  )}
+                                  {t.status === "error" && (
+                                    <a href={watchSearchUrl(ex.title, ex.year)} target="_blank" rel="noopener noreferrer">Search instead ↗</a>
+                                  )}
+                                  <a href={scriptSearchUrl(ex.title)} target="_blank" rel="noopener noreferrer">Read script ↗</a>
+                                </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
 
                     <div className="tl-viewtoggle">
