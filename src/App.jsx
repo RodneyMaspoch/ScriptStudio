@@ -448,6 +448,13 @@ const IconFolder = () => (
     <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"></path>
   </svg>
 );
+const IconSave = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path>
+    <path d="M17 21v-8H7v8"></path>
+    <path d="M7 3v5h8"></path>
+  </svg>
+);
 const IconPen = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
     <path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
@@ -561,26 +568,29 @@ export default function App() {
     })();
   }, []);
 
-  useEffect(() => {
-    if (!hydrated || !activeProjectId) return;
+  const saveNow = () => {
+    if (!activeProjectId) return;
     const data = {
       framework: state.framework, data: state.data, reviewInput: state.reviewInput,
       developView: state.developView,
       overview: state.overview, targetLength: state.targetLength, targetLengthCustom: state.targetLengthCustom, genre: state.genre,
       settings: state.settings, script: state.script,
     };
-    const debounce = setTimeout(() => {
-      saveProjectData(activeProjectId, data).then(() => {
-        setJustSaved(true);
-        clearTimeout(saveFlashTimeout.current);
-        saveFlashTimeout.current = setTimeout(() => setJustSaved(false), 1600);
-      });
-      setProjects((prev) => {
-        const next = prev.map((p) => (p.id === activeProjectId ? { ...p, updatedAt: Date.now() } : p));
-        saveIndex(next);
-        return next;
-      });
-    }, 600);
+    saveProjectData(activeProjectId, data).then(() => {
+      setJustSaved(true);
+      clearTimeout(saveFlashTimeout.current);
+      saveFlashTimeout.current = setTimeout(() => setJustSaved(false), 1600);
+    });
+    setProjects((prev) => {
+      const next = prev.map((p) => (p.id === activeProjectId ? { ...p, updatedAt: Date.now() } : p));
+      saveIndex(next);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!hydrated || !activeProjectId) return;
+    const debounce = setTimeout(() => saveNow(), 600);
     return () => clearTimeout(debounce);
   }, [state, hydrated, activeProjectId]);
 
@@ -1128,6 +1138,12 @@ export default function App() {
         /* header */
         .tl-header { flex: none; height: 60px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; padding: 0 20px; border-bottom: 1px solid #1E1E22; background: rgba(10,10,11,.75); backdrop-filter: blur(10px); z-index: 20; }
         .tl-header-right { display: flex; align-items: center; gap: 8px; justify-self: end; min-width: 0; }
+        .tl-save-btn {
+          display: inline-flex; align-items: center; gap: 7px; background: #FFE600; color: #0A0A0B;
+          border: none; border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 600;
+        }
+        .tl-save-btn:hover { background: #FFEC4D; }
+        .tl-save-btn:active { transform: scale(.97); }
         .tl-brand { display: flex; align-items: center; gap: 11px; }
         .tl-brand-logo { height: 30px; width: auto; display: block; }
         .tl-brand-mark { width: 30px; height: 30px; border-radius: 8px; background: #FFE600; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(255,230,0,.4), 0 6px 18px -6px rgba(255,230,0,.5); flex: none; }
@@ -1447,6 +1463,7 @@ export default function App() {
           <button className={`tl-navtab ${mode === "board" ? "active" : ""}`} onClick={() => setMode("board")}><IconBoard /> Storyboard</button>
         </div>
         <div className="tl-header-right">
+          <button className="tl-save-btn" onClick={saveNow}><IconSave /> Save</button>
           <span className={`tl-saved-flash ${justSaved ? "visible" : ""}`}>Saved</span>
           <button className="tl-settingsbtn" onClick={() => setLibraryOpen(true)}><IconFolder /> <span style={{ maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{activeProjectTitle}</span></button>
           <button className="tl-settingsbtn" onClick={() => setSettingsOpen(true)}><IconSettings /> Settings</button>
