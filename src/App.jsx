@@ -1029,15 +1029,17 @@ export default function App() {
   };
   const inspirationKey = (frameworkKey, targetLength, genre) => `${frameworkKey}:${lengthCategory(targetLength)}:${genre || "Any"}`;
 
-  const fetchGenreExamples = async (frameworkObj, lengthCat, genre) => {
-    const mediaLabel = lengthCat === "short" ? "short films" : lengthCat === "feature" ? "feature films" : "short films and feature films";
+  const fetchGenreExamples = async (frameworkObj, genre, lengthDesc, exactRange) => {
+    const rangeClause = exactRange
+      ? `The actual runtime should be close to ${Math.round(exactRange[0])}\u2013${Math.round(exactRange[1])} minutes. A little over is fine (a few extra minutes is completely acceptable), but do not include anything dramatically longer, like a feature-length film, and never guess at or round a runtime you're not confident about \u2014 leave a title out rather than misstate its length.`
+      : `Match this general length: ${lengthDesc}.`;
     const text = await callClaude({
-      system: `You are a film-structure expert. List exactly 12 real, existing ${mediaLabel} in the ${genre} genre that clearly use the "${frameworkObj.name}" structure (${frameworkObj.blurb}). Return ONLY minified JSON: [{"title":"","year":<int>,"note":"one specific sentence on how it fits, under 20 words"}]. Every title and year must be a real, verifiable film \u2014 never invent one. Vary directors and eras within the genre where possible.`,
-      messages: [{ role: "user", content: `Genre: ${genre}. Structure: ${frameworkObj.name}.` }],
+      system: `You are a film-structure expert with precise, accurate knowledge of real film runtimes. List exactly 12 real, existing films in the ${genre} genre that clearly use the "${frameworkObj.name}" structure (${frameworkObj.blurb}). ${rangeClause} Strongly prioritize films that are actually easy to find and watch today \u2014 real film-festival selections (Sundance, TIFF, Cannes Short Film Corner, Oscar-qualifying festivals) or films officially posted on YouTube or Vimeo with substantial view counts \u2014 over obscure, vintage, or hard-to-verify titles. Return ONLY minified JSON: [{"title":"","year":<int>,"runtimeMinutes":<int, your best real estimate of the actual runtime>,"note":"one specific sentence on how it fits, under 20 words"}]. Every title, year, and runtime must be real and verifiable \u2014 never invent one. Vary directors and eras within the genre where possible, but never at the expense of the runtime requirement.`,
+      messages: [{ role: "user", content: `Genre: ${genre}. Structure: ${frameworkObj.name}. Required runtime: ${exactRange ? `${Math.round(exactRange[0])}\u2013${Math.round(exactRange[1])} minutes` : lengthDesc}.` }],
     });
     const j = parseJSON(text);
     if (!Array.isArray(j) || !j.length) throw new Error("Couldn't generate examples for that genre. Try again, or pick a different genre.");
-    return j.slice(0, 12).map((x) => ({ title: x.title, year: x.year, note: x.note, genre }));
+    return j.slice(0, 12).map((x) => ({ title: x.title, year: x.year, runtimeMinutes: x.runtimeMinutes, note: x.note, genre }));
   };
 
   const refreshInspiration = async (frameworkKey) => {
@@ -1048,7 +1050,7 @@ export default function App() {
       setInspirationLoading((s) => ({ ...s, [key]: true }));
       setInspirationError((s) => ({ ...s, [key]: null }));
       try {
-        const results = await fetchGenreExamples(frameworkObj, lengthCategory(state.targetLength), state.genre);
+        const results = await fetchGenreExamples(frameworkObj, state.genre, lengthPhrase(state), targetRange(state));
         setShownExamples((s) => ({ ...s, [key]: results }));
       } catch (e) {
         setInspirationError((s) => ({ ...s, [key]: e.message || "Something went wrong. Try again." }));
@@ -1565,7 +1567,7 @@ export default function App() {
                                   <div className="tl-inspiration-item" key={exi}>
                                     <div className="tl-inspiration-title-row">
                                       <span className="tl-inspiration-title">{ex.title}</span>
-                                      <span className="tl-inspiration-year">{ex.year}</span>
+                                      <span className="tl-inspiration-year">{ex.year}{ex.runtimeMinutes ? ` · ~${ex.runtimeMinutes} min` : ""}</span>
                                     </div>
                                     <div className="tl-inspiration-note">{ex.note}</div>
 
